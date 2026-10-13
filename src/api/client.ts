@@ -1,7 +1,8 @@
 import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
 
-// Dirección de tu Flask. Se define en el archivo .env (EXPO_PUBLIC_API_URL).
+// Dirección del backend (https://...onrender.com). En desarrollo: archivo .env (EXPO_PUBLIC_API_URL).
+// En el APK se toma de eas.json (build.<perfil>.env), porque .env no se sube a EAS.
 export const API_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://127.0.0.1:5000';
 const KEY = 'ecosoporte_token';
 
@@ -27,7 +28,7 @@ type Options = { method?: 'GET' | 'POST'; body?: unknown };
 export async function api<T = any>(path: string, opts: Options = {}): Promise<T> {
   const token = await getToken();
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 15000); // 15 s: evita quedarse "cargando" para siempre
+  const timer = setTimeout(() => controller.abort(), 60000); // 60 s: el servidor gratuito de Render puede tardar ~1 min en despertar
 
   try {
     const res = await fetch(`${API_URL}/api/v1${path}`, {
@@ -49,10 +50,10 @@ export async function api<T = any>(path: string, opts: Options = {}): Promise<T>
     return data as T;
   } catch (e: any) {
     if (e?.name === 'AbortError') {
-      throw new Error(`No se pudo conectar con ${API_URL}. Revisa la IP del .env y que Flask esté corriendo.`);
+      throw new Error('El servidor está tardando en responder (puede estar despertando). Espera unos segundos y pulsa Reintentar.');
     }
     if (e instanceof TypeError) {
-      throw new Error(`No se pudo conectar con ${API_URL}. Revisa la IP, el Wi-Fi y el Firewall.`);
+      throw new Error('No se pudo conectar con el servidor. Revisa tu conexión a internet e inténtalo de nuevo.');
     }
     throw e;
   } finally {
