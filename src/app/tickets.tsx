@@ -14,6 +14,7 @@ import { api } from '../api/client';
 type Ticket = {
   id: number;
   code?: string;
+  year?: number;
   title: string;
   status?: string;
   priority?: string;
@@ -112,9 +113,22 @@ export default function TicketsScreen() {
           </Text>
         </View>
       ) : (
-        tickets.map((ticket) => (
+        tickets.map((ticket, idx) => (
+          <View key={ticket.id}>
+            {(idx === 0 || tickets[idx - 1].year !== ticket.year) && ticket.year ? (
+              <Text
+                style={{
+                  color: C.dark,
+                  fontSize: 15,
+                  fontWeight: '900',
+                  marginTop: idx === 0 ? 0 : 8,
+                  marginBottom: 10,
+                }}
+              >
+                Año {ticket.year}
+              </Text>
+            ) : null}
           <Pressable
-            key={ticket.id}
             onPress={() => router.push(`/ticket/${ticket.id}`)}
             style={{
               backgroundColor: C.white,
@@ -152,6 +166,7 @@ export default function TicketsScreen() {
               {ticket.company ?? 'Sin empresa vinculada'}
             </Text>
           </Pressable>
+          </View>
         ))
       )}
     </ScrollView>
