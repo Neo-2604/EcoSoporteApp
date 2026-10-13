@@ -22,6 +22,7 @@ const C = {
 
 type Ticket = {
   id: number;
+  code?: string;
   title: string;
   description?: string;
   status?: string;
@@ -133,7 +134,7 @@ export default function TicketDetail() {
         {ticket ? (
           <>
             <Text style={{ color: C.muted, fontSize: 12 }}>
-              TICKET #{ticket.id}
+              {ticket.code ?? `#${ticket.id}`}
             </Text>
 
             <Text

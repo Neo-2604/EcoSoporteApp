@@ -9,6 +9,7 @@ import { api } from '@/api/client';
 
 type Ticket = {
   id: number;
+  code?: string;
   title: string;
   status: string;
   priority: string;
@@ -133,7 +134,7 @@ export default function AdminAssignmentsScreen() {
             ]}
           >
             <View style={styles.ticketTop}>
-              <Text style={styles.ticketId}>Ticket #{ticket.id}</Text>
+              <Text style={styles.ticketId}>{ticket.code ?? `#${ticket.id}`}</Text>
               <Text style={styles.priority}>{ticket.priority}</Text>
             </View>
             <Text style={styles.ticketTitle}>{ticket.title}</Text>

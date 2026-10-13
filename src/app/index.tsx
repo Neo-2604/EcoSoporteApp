@@ -14,6 +14,7 @@ import { api, AuthError, setToken } from '../api/client';
 
 type Ticket = {
   id: number;
+  code?: string;
   title: string;
   priority?: string;
   status?: string;
@@ -467,7 +468,7 @@ export default function Dashboard() {
                 }}
               >
                 <Text style={{ color: C.muted, fontSize: 12 }}>
-                  #{ticket.id} · {ticket.status ?? 'Sin estado'}
+                  {ticket.code ?? `#${ticket.id}`} · {ticket.status ?? 'Sin estado'}
                 </Text>
 
                 <View

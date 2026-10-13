@@ -39,7 +39,7 @@ export default function NewTicket() {
     setLoading(true);
 
     try {
-      const response = await api<{ id: number }>('/tickets', {
+      const response = await api<{ id: number; code?: string }>('/tickets', {
         method: 'POST',
         body: {
           title: title.trim(),
@@ -47,7 +47,7 @@ export default function NewTicket() {
         },
       });
 
-      setSuccess(`Ticket #${response.id} creado correctamente.`);
+      setSuccess(`Ticket ${response.code ?? '#' + response.id} creado correctamente.`);
       setTitle('');
       setDescription('');
     } catch (e: unknown) {

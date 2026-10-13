@@ -13,6 +13,7 @@ import { api } from '../api/client';
 
 type Ticket = {
   id: number;
+  code?: string;
   title: string;
   status?: string;
   priority?: string;
@@ -125,7 +126,7 @@ export default function TicketsScreen() {
             }}
           >
             <Text style={{ color: C.muted, fontSize: 12 }}>
-              Ticket #{ticket.id}
+              {ticket.code ?? `#${ticket.id}`}
             </Text>
 
             <Text
