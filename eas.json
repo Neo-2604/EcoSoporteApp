@@ -14,13 +14,13 @@
         "buildType": "apk"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://TU-SERVICIO.onrender.com"
+        "EXPO_PUBLIC_API_URL": "https://ecosoporte-digital-backend.onrender.com"
       }
     },
     "production": {
       "autoIncrement": true,
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://TU-SERVICIO.onrender.com"
+        "EXPO_PUBLIC_API_URL": "https://ecosoporte-digital-backend.onrender.com"
       }
     }
   },
