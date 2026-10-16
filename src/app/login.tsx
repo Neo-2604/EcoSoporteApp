@@ -1,29 +1,15 @@
-import { router } from 'expo-router';
 import { useState } from 'react';
-import {
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  ScrollView,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import { ActivityIndicator, Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { api, setToken } from '../api/client';
-
-const C = {
-  teal: '#00A88F',
-  dark: '#123F4B',
-  muted: '#68848C',
-  bg: '#F3FAF9',
-  line: '#D9EAE8',
-  white: '#FFFFFF',
-  red: '#B93838',
-};
+import { StatusBar } from 'expo-status-bar';
+import { api } from '../api/client';
+import { useAuth } from '../auth';
+import { Field } from '../components/kit';
+import { useTheme } from '../theme';
 
 export default function Login() {
+  const { c, dark } = useTheme();
+  const { signIn } = useAuth();
   const insets = useSafeAreaInsets();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -33,189 +19,43 @@ export default function Login() {
 
   async function entrar() {
     setError('');
-
-    if (!email.trim() || !password) {
-      setError('Escribe tu correo y contraseña.');
-      return;
-    }
-
+    if (!email.trim() || !password) { setError('Escribe tu correo y contraseña.'); return; }
     setLoading(true);
-
     try {
-      const response = await api<{ token: string; user: unknown }>(
-        '/login',
-        {
-          method: 'POST',
-          body: {
-            email: email.trim().toLowerCase(),
-            password,
-          },
-        }
-      );
-
-      await setToken(response.token);
-      router.replace('/');
+      const r = await api<{ token: string }>('/login', { method: 'POST', body: { email: email.trim().toLowerCase(), password } });
+      await signIn(r.token); // al haber sesión, la app pasa sola al inicio
     } catch (e: unknown) {
-      setError(
-        e instanceof Error
-          ? e.message
-          : 'No se pudo iniciar sesión.'
-      );
-    } finally {
-      setLoading(false);
-    }
+      setError(e instanceof Error ? e.message : 'No se pudo iniciar sesión.');
+    } finally { setLoading(false); }
   }
 
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1, backgroundColor: C.bg }}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
-      <ScrollView
-        contentContainerStyle={{
-          flexGrow: 1,
-          justifyContent: 'center',
-          paddingHorizontal: 22,
-          paddingTop: Math.max(insets.top, 20) + 10,
-          paddingBottom: Math.max(insets.bottom, 20) + 10,
-        }}
-        keyboardShouldPersistTaps="handled"
-      >
+    <KeyboardAvoidingView style={{ flex: 1, backgroundColor: c.bg }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <StatusBar style={dark ? 'light' : 'dark'} />
+      <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', paddingHorizontal: 22, paddingTop: insets.top + 16, paddingBottom: insets.bottom + 16 }}>
         <View style={{ width: '100%', maxWidth: 440, alignSelf: 'center' }}>
-          <View style={{ alignItems: 'center', marginBottom: 28 }}>
-            <View
-              style={{
-                width: 76,
-                height: 76,
-                borderRadius: 25,
-                backgroundColor: C.teal,
-                alignItems: 'center',
-                justifyContent: 'center',
-                marginBottom: 16,
-              }}
-            >
-              <Text style={{ color: '#FFFFFF', fontSize: 38, fontWeight: '900' }}>
-                E
-              </Text>
+          <View style={{ alignItems: 'center', marginBottom: 24 }}>
+            {/* En modo oscuro el logo va sobre una tarjeta clara para que se lea con sus colores */}
+            <View style={{ backgroundColor: dark ? '#F2FAF9' : 'transparent', borderRadius: 24, paddingHorizontal: 18, paddingVertical: 8 }}>
+              <Image source={require('../../assets/images/logo-completo.png')} resizeMode="contain" style={{ width: 230, height: 150 }} />
             </View>
-
-            <Text
-              style={{
-                color: C.dark,
-                fontSize: 27,
-                fontWeight: '900',
-                textAlign: 'center',
-              }}
-            >
-              EcoSoporte Digital
-            </Text>
-
-            <Text style={{ color: C.muted, marginTop: 7 }}>
-              Soporte tecnológico para tu empresa
-            </Text>
+            <Text style={{ color: c.muted, marginTop: 8, fontSize: 13 }}>App para técnicos y administración</Text>
           </View>
 
-          <View
-            style={{
-              backgroundColor: C.white,
-              borderRadius: 22,
-              borderWidth: 1,
-              borderColor: C.line,
-              padding: 22,
-            }}
-          >
-            <Text style={{ color: C.dark, fontSize: 22, fontWeight: '900' }}>
-              Bienvenido
-            </Text>
-
-            <Text style={{ color: C.muted, marginTop: 6, marginBottom: 20 }}>
-              Ingresa con las credenciales de tu cuenta.
-            </Text>
-
-            <Text style={{ color: C.dark, fontWeight: '800', marginBottom: 7 }}>
-              Correo electrónico
-            </Text>
-
-            <TextInput
-              value={email}
-              onChangeText={setEmail}
-              placeholder="usuario@empresa.com"
-              autoCapitalize="none"
-              autoCorrect={false}
-              keyboardType="email-address"
-              style={{
-                borderWidth: 1,
-                borderColor: C.line,
-                borderRadius: 12,
-                padding: 14,
-                color: C.dark,
-                marginBottom: 15,
-              }}
-            />
-
-            <Text style={{ color: C.dark, fontWeight: '800', marginBottom: 7 }}>
-              Contraseña
-            </Text>
-
-            <TextInput
-              value={password}
-              onChangeText={setPassword}
-              placeholder="Ingresa tu contraseña"
-              secureTextEntry={!show}
-              onSubmitEditing={entrar}
-              style={{
-                borderWidth: 1,
-                borderColor: C.line,
-                borderRadius: 12,
-                padding: 14,
-                color: C.dark,
-              }}
-            />
-
-            <Pressable
-              onPress={() => setShow(!show)}
-              style={{ alignSelf: 'flex-end', paddingVertical: 12 }}
-            >
-              <Text style={{ color: C.teal, fontWeight: '800' }}>
-                {show ? 'Ocultar contraseña' : 'Mostrar contraseña'}
-              </Text>
+          <View style={{ backgroundColor: c.card, borderRadius: 22, borderWidth: 1, borderColor: c.line, padding: 20 }}>
+            <Text style={{ color: c.ink, fontSize: 21, fontWeight: '800' }}>Bienvenido</Text>
+            <Text style={{ color: c.muted, marginTop: 4, marginBottom: 18 }}>Ingresa con las credenciales de tu cuenta.</Text>
+            <Field label="Correo electrónico" value={email} onChangeText={setEmail} placeholder="usuario@empresa.com" autoCapitalize="none" autoCorrect={false} keyboardType="email-address" />
+            <Field label="Contraseña" value={password} onChangeText={setPassword} placeholder="Tu contraseña" secureTextEntry={!show} onSubmitEditing={entrar} />
+            <Pressable onPress={() => setShow(!show)} style={{ alignSelf: 'flex-end', paddingBottom: 12 }}>
+              <Text style={{ color: c.accent, fontWeight: '800' }}>{show ? 'Ocultar contraseña' : 'Mostrar contraseña'}</Text>
             </Pressable>
-
-            {error ? (
-              <Text style={{ color: C.red, marginBottom: 12 }}>{error}</Text>
-            ) : null}
-
-            <Pressable
-              onPress={entrar}
-              disabled={loading}
-              style={{
-                backgroundColor: C.teal,
-                borderRadius: 12,
-                padding: 15,
-                alignItems: 'center',
-                opacity: loading ? 0.7 : 1,
-              }}
-            >
-              {loading ? (
-                <ActivityIndicator color="#FFFFFF" />
-              ) : (
-                <Text style={{ color: '#FFFFFF', fontWeight: '900' }}>
-                  Iniciar sesión
-                </Text>
-              )}
+            {error ? <Text style={{ color: c.danger, marginBottom: 12 }}>{error}</Text> : null}
+            <Pressable onPress={entrar} disabled={loading} style={{ backgroundColor: c.accent, borderRadius: 14, minHeight: 52, alignItems: 'center', justifyContent: 'center', opacity: loading ? 0.7 : 1 }}>
+              {loading ? <ActivityIndicator color={c.accentInk} /> : <Text style={{ color: c.accentInk, fontWeight: '800', fontSize: 15 }}>Iniciar sesión</Text>}
             </Pressable>
           </View>
-
-          <Text
-            style={{
-              color: C.muted,
-              textAlign: 'center',
-              fontSize: 12,
-              marginTop: 20,
-            }}
-          >
-            Acceso protegido · EcoSoporte Digital
-          </Text>
+          <Text style={{ color: c.muted, textAlign: 'center', fontSize: 12, marginTop: 18 }}>Acceso protegido · EcoSoporte Digital</Text>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
