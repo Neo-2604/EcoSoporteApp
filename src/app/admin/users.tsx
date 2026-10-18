@@ -17,6 +17,8 @@ type UserItem = {
   company_id: number | null;
   company?: string | null;
   phone?: string | null;
+  position?: string | null;
+  tech_code?: string | null;
 };
 
 type Company = { id: number; name: string };
@@ -169,13 +171,17 @@ const loadData = useCallback(async () => {
     try {
       await api(`/users/${editing.id}/edit`, {
         method: 'POST',
-        body: { role: editing.role, area: editing.role === 'Usuario' ? 'Cliente' : editing.area },
+        body: {
+          name: (editing.name ?? '').trim(), email: (editing.email ?? '').trim(), phone: (editing.phone ?? '').trim(),
+          position: (editing.position ?? '').trim(),
+          role: editing.role, area: editing.role === 'Usuario' ? 'Cliente' : editing.area,
+        },
       });
       setEditing(null);
-      notify('Rol actualizado correctamente.');
+      notify('Datos actualizados correctamente.');
       await loadData();
     } catch (e: any) {
-      notify(e?.message ?? 'No fue posible actualizar el rol.');
+      notify(e?.message ?? 'No fue posible actualizar los datos.');
     } finally {
       setSaving(false);
     }
@@ -222,13 +228,39 @@ const loadData = useCallback(async () => {
   }
 
 
+  async function purgeUser(user: UserItem) {
+    const message =
+      `¿Eliminar definitivamente la cuenta de ${user.name}? Se borra de la base de datos. ` +
+      'Sus tickets y su historial se conservan con su nombre. Esta acción no se puede deshacer.';
+    const run = async () => {
+      setSaving(true);
+      try {
+        await api(`/users/${user.id}/purge`, { method: 'POST', body: {} });
+        await loadData();
+        notify('Cuenta eliminada. El historial de los tickets se conserva.');
+      } catch (e: any) {
+        notify(e?.message ?? 'No fue posible eliminar la cuenta.');
+      } finally {
+        setSaving(false);
+      }
+    };
+    if (Platform.OS === 'web') {
+      if (window.confirm(message)) void run();
+    } else {
+      Alert.alert('Eliminar cuenta', message, [
+        { text: 'Cancelar', style: 'cancel' },
+        { text: 'Eliminar', style: 'destructive', onPress: () => void run() },
+      ]);
+    }
+  }
+
   const Button = ({
-    label, onPress, secondary = false, disabled = false,
-  }: { label: string; onPress: () => void; secondary?: boolean; disabled?: boolean }) => (
+    label, onPress, secondary = false, disabled = false, danger = false,
+  }: { label: string; onPress: () => void; secondary?: boolean; disabled?: boolean; danger?: boolean }) => (
     <Pressable
       disabled={disabled}
       onPress={onPress}
-      style={[styles.button, secondary && styles.secondary, disabled && styles.disabled]}
+      style={[styles.button, secondary && styles.secondary, danger && styles.danger, disabled && styles.disabled]}
     >
       <Text style={[styles.buttonText, secondary && styles.secondaryText]}>{label}</Text>
     </Pressable>
@@ -310,10 +342,15 @@ const loadData = useCallback(async () => {
             <Text style={[styles.status, user.active ? styles.active : styles.inactive]}>{user.active ? 'Activo' : 'Inactivo'}</Text>
           </View>
 
-          <Text style={styles.roleLine}>Rol: {user.role} · Área: {user.area || 'Sin área'}</Text>
+          <Text style={styles.roleLine}>Rol: {user.role} · Área: {user.area || 'Sin área'}{user.tech_code ? ` · ${user.tech_code}` : ''}</Text>
 
           {editing?.id === user.id ? (
             <>
+              <Text style={styles.label}>Datos de la cuenta</Text>
+              <TextInput style={styles.input} placeholder="Nombre completo" value={editing.name} onChangeText={v => setEditing({ ...editing, name: v })} />
+              <TextInput style={styles.input} placeholder="Correo electrónico" value={editing.email} onChangeText={v => setEditing({ ...editing, email: v })} autoCapitalize="none" keyboardType="email-address" />
+              <TextInput style={styles.input} placeholder="Teléfono" value={editing.phone ?? ''} onChangeText={v => setEditing({ ...editing, phone: v })} keyboardType="phone-pad" />
+              <TextInput style={styles.input} placeholder="Cargo" value={editing.position ?? ''} onChangeText={v => setEditing({ ...editing, position: v })} />
               <Text style={styles.label}>Cambiar rol</Text>
               <View style={styles.chips}>
                 {ROLES.map(item => (
@@ -338,8 +375,9 @@ const loadData = useCallback(async () => {
             </>
           ) : (
             <View style={styles.actions}>
-              <Button label="Editar rol" secondary onPress={() => setEditing(user)} />
-              <Button label="Retirar usuario" secondary onPress={() => void retireUser(user)} disabled={saving} />
+              <Button label="Editar datos" secondary onPress={() => setEditing(user)} />
+              <Button label="Retirar" secondary onPress={() => void retireUser(user)} disabled={saving} />
+              <Button label="Eliminar" onPress={() => void purgeUser(user)} disabled={saving} danger />
             </View>
           )}
         </View>
@@ -364,6 +402,7 @@ const styles = StyleSheet.create({
   chipTextSelected: { color: '#087D6C' },
   button: { backgroundColor: '#078A76', paddingHorizontal: 14, paddingVertical: 11, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
   secondary: { backgroundColor: '#E6F2EF' },
+  danger: { backgroundColor: '#B42318' },
   buttonText: { color: '#FFFFFF', fontWeight: '700', fontSize: 13 },
   secondaryText: { color: '#176B5B' },
   disabled: { opacity: 0.55 },

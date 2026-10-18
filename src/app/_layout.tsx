@@ -2,6 +2,7 @@ import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AuthProvider } from '../auth';
+import { NotifBanner, NotifProvider } from '../notifications';
 import { ThemeProvider, useTheme } from '../theme';
 
 function Shell() {
@@ -10,6 +11,7 @@ function Shell() {
     <>
       <StatusBar style={dark ? 'light' : 'dark'} />
       <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: c.bg }, animation: 'slide_from_right' }} />
+      <NotifBanner />
     </>
   );
 }
@@ -19,7 +21,9 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <ThemeProvider>
         <AuthProvider>
-          <Shell />
+          <NotifProvider>
+            <Shell />
+          </NotifProvider>
         </AuthProvider>
       </ThemeProvider>
     </SafeAreaProvider>

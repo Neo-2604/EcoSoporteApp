@@ -101,17 +101,20 @@ export function Screen({
   ) : null;
 
   const pad = {
-    paddingTop: insets.top + 12, paddingHorizontal: 18,
+    paddingTop: 12, paddingHorizontal: 18,
     paddingBottom: insets.bottom + (tabs ? TAB_SPACE : 24),
   };
   const footerBar = footer ? <View style={{ paddingHorizontal: 18, paddingTop: 12, paddingBottom: insets.bottom + 12, backgroundColor: c.tabBar, borderTopWidth: 1, borderColor: c.line }}>{footer}</View> : null;
   return (
     <>
       <StatusBar style={dark ? 'light' : 'dark'} />
+      {/* límite superior: el contenido se corta justo debajo de la barra de notificaciones y no pasa por detrás */}
+      <View style={{ flex: 1, backgroundColor: c.bg, paddingTop: insets.top }}>
       <KeyboardScreen bg={c.bg} scroll={scroll} footer={footerBar} contentContainerStyle={scroll ? [pad, { flexGrow: 1 }, contentStyle] : [pad, contentStyle]}
         refreshControl={scroll && onRefresh ? <RefreshControl refreshing={!!refreshing} onRefresh={onRefresh} tintColor={c.accent} colors={[c.accent]} /> : undefined}>
         {scroll ? <View style={{ width: '100%', maxWidth: 720, alignSelf: 'center' }}>{header}{children}</View> : <>{header}{children}</>}
       </KeyboardScreen>
+      </View>
     </>
   );
 }

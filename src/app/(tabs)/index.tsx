@@ -5,6 +5,7 @@ import { api } from '../../api/client';
 import { useAuth } from '../../auth';
 import { Avatar, Card, ErrorBox, H, Loading, Muted, Pill, Row, Screen } from '../../components/kit';
 import { Icon, IconName } from '../../components/icon';
+import { useNotifications } from '../../notifications';
 import { SlaText, Ticket, TicketCard } from '../../components/ticket-card';
 import { slaLeft } from '../../lib/format';
 import { useNow } from '../../lib/hooks';
@@ -20,6 +21,7 @@ function greeting() {
 export default function Home() {
   const { c } = useTheme();
   const { me, isAdmin, isStaff, canRemote } = useAuth();
+  const { unread } = useNotifications();
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [counts, setCounts] = useState<Counts>({});
   const [loading, setLoading] = useState(true);
@@ -53,7 +55,18 @@ export default function Home() {
 
   return (
     <Screen tabs refreshing={loading} onRefresh={load}
-      right={<Pressable onPress={() => router.push('/profile')} accessibilityLabel="Mi perfil"><Avatar name={me?.name ?? '?'} size={44} /></Pressable>}
+      right={(
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+          {isStaff ? (
+            <Pressable onPress={() => router.push('/notifications' as never)} accessibilityLabel="Notificaciones" hitSlop={6}
+              style={{ width: 44, height: 44, borderRadius: 14, backgroundColor: c.card, borderWidth: 1, borderColor: c.line, alignItems: 'center', justifyContent: 'center' }}>
+              <Icon name="bell" size={20} color={c.ink} />
+              {unread ? <View style={{ position: 'absolute', top: -5, right: -5, minWidth: 19, height: 19, borderRadius: 10, backgroundColor: c.danger, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4 }}><Text style={{ color: '#fff', fontSize: 11, fontWeight: '800' }}>{unread > 99 ? '99+' : unread}</Text></View> : null}
+            </Pressable>
+          ) : null}
+          <Pressable onPress={() => router.push('/profile')} accessibilityLabel="Mi perfil"><Avatar name={me?.name ?? '?'} size={44} /></Pressable>
+        </View>
+      )}
       title={`${greeting()}, ${me?.name?.split(' ')[0] ?? ''}`} eyebrow={isStaff ? 'Mi jornada' : 'Mis solicitudes'}>
       <ErrorBox message={error} onRetry={load} />
       {loading && !tickets.length && !error ? <Loading text="Cargando…" /> : null}
