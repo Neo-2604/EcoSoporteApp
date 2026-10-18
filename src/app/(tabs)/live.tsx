@@ -1,4 +1,5 @@
-import { router, useFocusEffect } from 'expo-router';
+import { Redirect, router, useFocusEffect } from 'expo-router';
+import { useAuth } from '../../auth';
 import { useCallback, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { api } from '../../api/client';
@@ -17,6 +18,11 @@ type Activity = {
 type Lead = { id: number; status: string; kind: string; name?: string | null; subject?: string | null };
 
 export default function Live() {
+  const { isAdmin } = useAuth();
+  return isAdmin ? <LiveInner /> : <Redirect href="/" />; // los técnicos no ven esta sección
+}
+
+function LiveInner() {
   const { c } = useTheme();
   const [a, setA] = useState<Activity | null>(null);
   const [leads, setLeads] = useState<Lead[]>([]);

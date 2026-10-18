@@ -1,7 +1,7 @@
 import { router } from 'expo-router';
-import { ReactNode } from 'react';
+import { createContext, ReactNode, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import {
-  ActivityIndicator, Alert, KeyboardAvoidingView, Platform, Pressable, RefreshControl, ScrollView,
+  ActivityIndicator, Alert, Dimensions, Keyboard, Platform, Pressable, RefreshControl, ScrollView,
   StyleProp, Text, TextInput, TextInputProps, View, ViewStyle,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -19,6 +19,58 @@ export function notify(message: string, title = 'EcoSoporte Digital') {
 export function confirm(message: string, onYes: () => void, title = 'Confirmar') {
   if (Platform.OS === 'web') { if (window.confirm(message)) onYes(); return; }
   Alert.alert(title, message, [{ text: 'Cancelar', style: 'cancel' }, { text: 'Aceptar', style: 'destructive', onPress: onYes }]);
+}
+
+
+/* ---- Teclado: sube el contenido y desplaza el campo enfocado para que nunca quede tapado ---- */
+type Ensure = (input: TextInput | null) => void;
+const KeyboardCtx = createContext<Ensure | null>(null);
+
+/** Contenedor que se acorta lo que el teclado tape (no duplica si Android ya redimensiona la ventana). */
+export function KeyboardScreen({ children, scroll = true, footer, bg, contentContainerStyle, refreshControl }: {
+  children: ReactNode; scroll?: boolean; footer?: ReactNode; bg?: string;
+  contentContainerStyle?: StyleProp<ViewStyle>; refreshControl?: React.ReactElement<any>;
+}) {
+  const box = useRef<View>(null);
+  const sv = useRef<ScrollView>(null);
+  const offset = useRef(0);
+  const kbTop = useRef(Dimensions.get('window').height);
+  const [overlap, setOverlap] = useState(0);
+
+  useEffect(() => {
+    const show = Keyboard.addListener(Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow', e => {
+      kbTop.current = e.endCoordinates.screenY;
+      box.current?.measureInWindow((_x, y, _w, h) => setOverlap(Math.max(0, y + h - e.endCoordinates.screenY)));
+    });
+    const hide = Keyboard.addListener(Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide', () => {
+      kbTop.current = Dimensions.get('window').height; setOverlap(0);
+    });
+    return () => { show.remove(); hide.remove(); };
+  }, []);
+
+  const ensure = useCallback<Ensure>(input => {
+    if (!input) return;
+    // espera a que termine la animación del teclado y entonces desplaza el campo hasta dejarlo visible
+    setTimeout(() => {
+      input.measureInWindow((_x, y, _w, h) => {
+        const limit = kbTop.current - (footer ? 96 : 16);
+        const excess = y + h + 12 - limit;
+        if (excess > 0) sv.current?.scrollTo({ y: offset.current + excess, animated: true });
+      });
+    }, Platform.OS === 'ios' ? 80 : 280);
+  }, [footer]);
+
+  return (
+    <KeyboardCtx.Provider value={ensure}>
+      <View ref={box} collapsable={false} style={{ flex: 1, backgroundColor: bg, paddingBottom: overlap }}>
+        {scroll ? (
+          <ScrollView ref={sv} keyboardShouldPersistTaps="handled" onScroll={e => { offset.current = e.nativeEvent.contentOffset.y; }} scrollEventThrottle={16}
+            contentContainerStyle={contentContainerStyle} refreshControl={refreshControl}>{children}</ScrollView>
+        ) : <View style={[{ flex: 1 }, contentContainerStyle as StyleProp<ViewStyle>]}>{children}</View>}
+        {footer}
+      </View>
+    </KeyboardCtx.Provider>
+  );
 }
 
 /** Pantalla con cabecera que respeta la zona segura (barra de notificaciones) y botón de volver. */
@@ -49,22 +101,21 @@ export function Screen({
   ) : null;
 
   const pad = {
-    paddingTop: insets.top + 12, paddingHorizontal: 18,
+    paddingTop: 12, paddingHorizontal: 18,
     paddingBottom: insets.bottom + (tabs ? TAB_SPACE : 24),
   };
+  const footerBar = footer ? <View style={{ paddingHorizontal: 18, paddingTop: 12, paddingBottom: insets.bottom + 12, backgroundColor: c.tabBar, borderTopWidth: 1, borderColor: c.line }}>{footer}</View> : null;
   return (
-    <KeyboardAvoidingView style={{ flex: 1, backgroundColor: c.bg }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+    <>
       <StatusBar style={dark ? 'light' : 'dark'} />
-      {scroll ? (
-        <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={[pad, { flexGrow: 1 }, contentStyle]}
-          refreshControl={onRefresh ? <RefreshControl refreshing={!!refreshing} onRefresh={onRefresh} tintColor={c.accent} colors={[c.accent]} /> : undefined}>
-          <View style={{ width: '100%', maxWidth: 720, alignSelf: 'center' }}>{header}{children}</View>
-        </ScrollView>
-      ) : (
-        <View style={[{ flex: 1 }, pad, contentStyle]}>{header}{children}</View>
-      )}
-      {footer ? <View style={{ paddingHorizontal: 18, paddingTop: 12, paddingBottom: insets.bottom + 12, backgroundColor: c.tabBar, borderTopWidth: 1, borderColor: c.line }}>{footer}</View> : null}
-    </KeyboardAvoidingView>
+      {/* límite superior: el contenido se corta justo debajo de la barra de notificaciones y no pasa por detrás */}
+      <View style={{ flex: 1, backgroundColor: c.bg, paddingTop: insets.top }}>
+      <KeyboardScreen bg={c.bg} scroll={scroll} footer={footerBar} contentContainerStyle={scroll ? [pad, { flexGrow: 1 }, contentStyle] : [pad, contentStyle]}
+        refreshControl={scroll && onRefresh ? <RefreshControl refreshing={!!refreshing} onRefresh={onRefresh} tintColor={c.accent} colors={[c.accent]} /> : undefined}>
+        {scroll ? <View style={{ width: '100%', maxWidth: 720, alignSelf: 'center' }}>{header}{children}</View> : <>{header}{children}</>}
+      </KeyboardScreen>
+      </View>
+    </>
   );
 }
 
@@ -129,10 +180,12 @@ export function Btn({ title, onPress, variant = 'primary', loading, disabled, ic
 
 export function Field({ label, ...p }: TextInputProps & { label?: string }) {
   const { c } = useTheme();
+  const ensure = useContext(KeyboardCtx);
+  const ref = useRef<TextInput>(null);
   return (
     <View style={{ marginBottom: 12 }}>
       {label ? <Text style={{ color: c.ink, fontWeight: '700', fontSize: 13, marginBottom: 6 }}>{label}</Text> : null}
-      <TextInput placeholderTextColor={c.muted} {...p}
+      <TextInput ref={ref} placeholderTextColor={c.muted} {...p} onFocus={e => { ensure?.(ref.current); p.onFocus?.(e); }}
         style={[{ borderWidth: 1, borderColor: c.line, backgroundColor: c.inputBg, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12, color: c.ink, fontSize: 15 }, p.multiline && { minHeight: 110, textAlignVertical: 'top' }, p.style]} />
     </View>
   );

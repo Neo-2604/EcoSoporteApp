@@ -2,7 +2,8 @@ import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { Linking, Text, View } from 'react-native';
 import { api } from '../../api/client';
-import { Avatar, Btn, Card, ErrorBox, H, IdChip, Loading, Muted, Pill, Row, Screen, priorityTone, statusTone } from '../../components/kit';
+import { useAuth } from '../../auth';
+import { Avatar, Btn, Card, ErrorBox, Field, H, IdChip, Loading, Muted, notify, Pill, Row, Screen, priorityTone, statusTone } from '../../components/kit';
 import { fmtDate } from '../../lib/format';
 import { useTheme } from '../../theme';
 
@@ -25,6 +26,34 @@ export default function Person() {
   const [p, setP] = useState<P | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const { me, isAdmin } = useAuth();
+  const [editing, setEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [f, setF] = useState<Record<string, string>>({});
+  const set = (k: string) => (v: string) => setF(o => ({ ...o, [k]: v }));
+
+  function startEdit() {
+    if (!p) return;
+    setF({
+      name: p.name ?? '', email: p.email ?? '', area: p.area ?? '', phone: p.phone ?? '', position: p.position ?? '', specialties: p.specialties ?? '', bio: p.bio ?? '',
+      document_id: p.document_id ?? '', birth_date: p.birth_date ?? '', hire_date: p.hire_date ?? '', city: p.city ?? '', address: p.address ?? '',
+      emergency_name: p.emergency_name ?? '', emergency_phone: p.emergency_phone ?? '',
+    });
+    setEditing(true);
+  }
+
+  async function saveEdit() {
+    if (!p) return;
+    setSaving(true);
+    try {
+      // el administrador cambia además nombre, correo, área y cargo; cada persona edita su propio contacto
+      const body: Record<string, string> = { ...f };
+      if (!isAdmin) { delete body.name; delete body.email; delete body.area; delete body.position; }
+      await api(`/profiles/${p.id}/edit`, { method: 'POST', body });
+      setEditing(false); notify('Información actualizada.'); await load();
+    } catch (e: unknown) { notify(e instanceof Error ? e.message : 'No se pudo guardar.'); }
+    finally { setSaving(false); }
+  }
 
   const load = useCallback(async () => {
     setLoading(true); setError('');
@@ -61,6 +90,31 @@ export default function Person() {
             </View>
           ) : null}
 
+          {p.level === 'full' && (isAdmin || me?.id === p.id) ? (
+            editing ? (
+              <>
+                <H>Editar información</H>
+                <Card>
+                  {isAdmin ? <><Field label="Nombre completo" value={f.name} onChangeText={set('name')} /><Field label="Correo electrónico" value={f.email} onChangeText={set('email')} autoCapitalize="none" keyboardType="email-address" /><Field label="Área" value={f.area} onChangeText={set('area')} /><Field label="Cargo" value={f.position} onChangeText={set('position')} /></> : null}
+                  <Field label="Teléfono" value={f.phone} onChangeText={set('phone')} keyboardType="phone-pad" />
+                  <Field label="Especialidades" value={f.specialties} onChangeText={set('specialties')} />
+                  <Field label="Acerca de" value={f.bio} onChangeText={set('bio')} multiline />
+                  <Field label="Documento" value={f.document_id} onChangeText={set('document_id')} />
+                  <Field label="Nacimiento (AAAA-MM-DD)" value={f.birth_date} onChangeText={set('birth_date')} />
+                  <Field label="Ingreso (AAAA-MM-DD)" value={f.hire_date} onChangeText={set('hire_date')} />
+                  <Field label="Ciudad" value={f.city} onChangeText={set('city')} />
+                  <Field label="Dirección" value={f.address} onChangeText={set('address')} />
+                  <Field label="Contacto de emergencia" value={f.emergency_name} onChangeText={set('emergency_name')} />
+                  <Field label="Teléfono de emergencia" value={f.emergency_phone} onChangeText={set('emergency_phone')} keyboardType="phone-pad" />
+                  <Row>
+                    <Btn title="Guardar" icon="check" loading={saving} style={{ flex: 1 }} onPress={saveEdit} />
+                    <Btn title="Cancelar" variant="ghost" style={{ flex: 1 }} onPress={() => setEditing(false)} />
+                  </Row>
+                </Card>
+              </>
+            ) : <Btn title="Editar información" icon="user" variant="soft" style={{ marginBottom: 12 }} onPress={startEdit} />
+          ) : null}
+
           <H>Contacto</H>
           <Card>
             <KV k="Nombre" v={p.name} /><KV k="Correo" v={p.email} /><KV k="Teléfono" v={p.phone} /><KV k="Área" v={p.area} />
@@ -75,7 +129,7 @@ export default function Person() {
                 <KV k="Documento" v={p.document_id} /><KV k="Nacimiento" v={p.birth_date} /><KV k="Ingreso" v={p.hire_date} /><KV k="Ciudad" v={p.city} /><KV k="Dirección" v={p.address} />
                 <KV k="Emergencia" v={[p.emergency_name, p.emergency_phone].filter(Boolean).join(' · ')} />
               </Card>
-              <Muted>Solo tú y el administrador ven estos datos. Para editarlos usa el sitio web (Mi perfil de trabajo).</Muted>
+              <Muted>Solo tú y el administrador ven estos datos.</Muted>
             </>
           ) : null}
 
