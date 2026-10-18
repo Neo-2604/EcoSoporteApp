@@ -11,16 +11,21 @@
     "preview": {
       "distribution": "internal",
       "android": {
-        "buildType": "apk"
+        "buildType": "apk",
+        "image": "latest"
       },
       "env": {
         "EXPO_PUBLIC_API_URL": "https://ecosoporte-digital-backend.onrender.com"
-      }
+      },
+      "autoIncrement": true
     },
     "production": {
       "autoIncrement": true,
       "env": {
         "EXPO_PUBLIC_API_URL": "https://ecosoporte-digital-backend.onrender.com"
+      },
+      "android": {
+        "image": "latest"
       }
     }
   },
