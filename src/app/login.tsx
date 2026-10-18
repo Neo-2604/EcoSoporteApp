@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import { ActivityIndicator, Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, Image, Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { api } from '../api/client';
 import { useAuth } from '../auth';
-import { Field } from '../components/kit';
+import { Field, KeyboardScreen } from '../components/kit';
 import { useTheme } from '../theme';
 
 export default function Login() {
@@ -30,15 +30,13 @@ export default function Login() {
   }
 
   return (
-    <KeyboardAvoidingView style={{ flex: 1, backgroundColor: c.bg }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+    <>
       <StatusBar style={dark ? 'light' : 'dark'} />
-      <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', paddingHorizontal: 22, paddingTop: insets.top + 16, paddingBottom: insets.bottom + 16 }}>
+      <KeyboardScreen bg={c.bg} contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', paddingHorizontal: 22, paddingTop: insets.top + 16, paddingBottom: insets.bottom + 16 }}>
         <View style={{ width: '100%', maxWidth: 440, alignSelf: 'center' }}>
           <View style={{ alignItems: 'center', marginBottom: 24 }}>
-            {/* En modo oscuro el logo va sobre una tarjeta clara para que se lea con sus colores */}
-            <View style={{ backgroundColor: dark ? '#F2FAF9' : 'transparent', borderRadius: 24, paddingHorizontal: 18, paddingVertical: 8 }}>
-              <Image source={require('../../assets/images/logo-completo.png')} resizeMode="contain" style={{ width: 230, height: 150 }} />
-            </View>
+            {/* El logo es transparente: se ve directo sobre el fondo, sin tarjeta blanca */}
+            <Image source={require('../../assets/images/logo-completo.png')} resizeMode="contain" style={{ width: 240, height: 170 }} />
             <Text style={{ color: c.muted, marginTop: 8, fontSize: 13 }}>App para técnicos y administración</Text>
           </View>
 
@@ -57,7 +55,7 @@ export default function Login() {
           </View>
           <Text style={{ color: c.muted, textAlign: 'center', fontSize: 12, marginTop: 18 }}>Acceso protegido · EcoSoporte Digital</Text>
         </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+      </KeyboardScreen>
+    </>
   );
 }
