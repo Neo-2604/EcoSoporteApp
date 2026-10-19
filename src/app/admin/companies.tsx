@@ -1,5 +1,5 @@
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, useMemo } from 'react';
 import {
   ActivityIndicator, Alert, Platform, Pressable, ScrollView,
   StyleSheet, Text, TextInput, View,
@@ -7,6 +7,7 @@ import {
 import { Stack } from 'expo-router';
 import { AdminFrame } from '@/components/kit';
 import { api } from '@/api/client';
+import { Palette, useTheme } from '@/theme';
 
 type Company = {
   id: number;
@@ -27,6 +28,8 @@ function notify(message: string) {
 }
 
 export default function AdminCompaniesScreen() {
+  const { c } = useTheme();
+  const styles = useMemo(() => makeStyles(c), [c]);
   const [companies, setCompanies] = useState<Company[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -98,13 +101,13 @@ export default function AdminCompaniesScreen() {
 
       <View style={styles.card}>
         <Text style={styles.heading}>Registrar empresa</Text>
-        <TextInput style={styles.input} placeholder="Nombre de la empresa *" value={name} onChangeText={setName} />
-        <TextInput style={styles.input} placeholder="NIT (opcional)" value={nit} onChangeText={setNit} />
-        <TextInput style={styles.input} placeholder="Correo empresarial *" value={email} onChangeText={setEmail} autoCapitalize="none" keyboardType="email-address" />
-        <TextInput style={styles.input} placeholder="Teléfono" value={phone} onChangeText={setPhone} keyboardType="phone-pad" />
-        <TextInput style={styles.input} placeholder="Ciudad" value={city} onChangeText={setCity} />
-        <TextInput style={styles.input} placeholder="Dirección" value={address} onChangeText={setAddress} />
-        <TextInput style={styles.input} placeholder="Nombre del contacto" value={contact} onChangeText={setContact} />
+        <TextInput placeholderTextColor={c.muted} style={styles.input} placeholder="Nombre de la empresa *" value={name} onChangeText={setName} />
+        <TextInput placeholderTextColor={c.muted} style={styles.input} placeholder="NIT (opcional)" value={nit} onChangeText={setNit} />
+        <TextInput placeholderTextColor={c.muted} style={styles.input} placeholder="Correo empresarial *" value={email} onChangeText={setEmail} autoCapitalize="none" keyboardType="email-address" />
+        <TextInput placeholderTextColor={c.muted} style={styles.input} placeholder="Teléfono" value={phone} onChangeText={setPhone} keyboardType="phone-pad" />
+        <TextInput placeholderTextColor={c.muted} style={styles.input} placeholder="Ciudad" value={city} onChangeText={setCity} />
+        <TextInput placeholderTextColor={c.muted} style={styles.input} placeholder="Dirección" value={address} onChangeText={setAddress} />
+        <TextInput placeholderTextColor={c.muted} style={styles.input} placeholder="Nombre del contacto" value={contact} onChangeText={setContact} />
 
         <Pressable style={[styles.button, saving && styles.disabled]} disabled={saving} onPress={() => void createCompany()}>
           <Text style={styles.buttonText}>{saving ? 'Guardando…' : 'Registrar empresa'}</Text>
@@ -118,7 +121,7 @@ export default function AdminCompaniesScreen() {
         </Pressable>
       </View>
 
-      {loading && <ActivityIndicator size="large" color="#078A76" />}
+      {loading && <ActivityIndicator size="large" color={c.accent} />}
       {!!error && <Text style={styles.error}>{error}</Text>}
 
       {!loading && companies.map(company => (
@@ -155,30 +158,30 @@ export default function AdminCompaniesScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  page: { flexGrow: 1, padding: 18, paddingTop: 14, paddingBottom: 45, gap: 14, backgroundColor: '#F4F8F7' },
-  eyebrow: { color: '#078A76', fontSize: 11, fontWeight: '800', letterSpacing: 1 },
-  title: { color: '#14332F', fontSize: 28, fontWeight: '800' },
-  subtitle: { color: '#657875', fontSize: 14, lineHeight: 21 },
-  card: { backgroundColor: '#FFFFFF', borderRadius: 16, padding: 16, gap: 10, borderWidth: 1, borderColor: '#E1ECE9' },
-  heading: { color: '#183C36', fontSize: 18, fontWeight: '800' },
-  input: { borderWidth: 1, borderColor: '#D7E4E0', backgroundColor: '#FBFDFC', borderRadius: 10, padding: 12, color: '#183C36' },
-  button: { backgroundColor: '#078A76', borderRadius: 10, padding: 13, alignItems: 'center' },
-  buttonText: { color: '#FFFFFF', fontWeight: '800' },
+const makeStyles = (c: Palette) => StyleSheet.create({
+  page: { flexGrow: 1, padding: 18, paddingTop: 14, paddingBottom: 45, gap: 14, backgroundColor: c.bg },
+  eyebrow: { color: c.accent, fontSize: 11, fontWeight: '800', letterSpacing: 1 },
+  title: { color: c.ink, fontSize: 28, fontWeight: '800' },
+  subtitle: { color: c.muted, fontSize: 14, lineHeight: 21 },
+  card: { backgroundColor: c.card, borderRadius: 16, padding: 16, gap: 10, borderWidth: 1, borderColor: c.line },
+  heading: { color: c.ink, fontSize: 18, fontWeight: '800' },
+  input: { borderWidth: 1, borderColor: c.line, backgroundColor: c.inputBg, borderRadius: 10, padding: 12, color: c.ink },
+  button: { backgroundColor: c.accent, borderRadius: 10, padding: 13, alignItems: 'center' },
+  buttonText: { color: c.accentInk, fontWeight: '800' },
   disabled: { opacity: 0.5 },
   listHeading: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
-  refresh: { backgroundColor: '#DDF7F0', paddingHorizontal: 12, paddingVertical: 9, borderRadius: 9 },
-  refreshText: { color: '#087D6C', fontWeight: '700' },
-  companyCard: { backgroundColor: '#FFFFFF', borderRadius: 16, padding: 15, gap: 8, borderWidth: 1, borderColor: '#E1ECE9' },
+  refresh: { backgroundColor: c.accentSoft, paddingHorizontal: 12, paddingVertical: 9, borderRadius: 9 },
+  refreshText: { color: c.accent, fontWeight: '700' },
+  companyCard: { backgroundColor: c.card, borderRadius: 16, padding: 15, gap: 8, borderWidth: 1, borderColor: c.line },
   companyHeader: { flexDirection: 'row', alignItems: 'center', gap: 11, marginBottom: 4 },
-  logo: { width: 42, height: 42, borderRadius: 12, backgroundColor: '#DDF7F0', alignItems: 'center', justifyContent: 'center' },
-  logoText: { color: '#087D6C', fontSize: 19, fontWeight: '800' },
-  companyName: { color: '#183C36', fontSize: 16, fontWeight: '800' },
-  muted: { color: '#71827E', fontSize: 12, marginTop: 3 },
-  detail: { color: '#526B65', fontSize: 13, lineHeight: 19 },
+  logo: { width: 42, height: 42, borderRadius: 12, backgroundColor: c.accentSoft, alignItems: 'center', justifyContent: 'center' },
+  logoText: { color: c.accent, fontSize: 19, fontWeight: '800' },
+  companyName: { color: c.ink, fontSize: 16, fontWeight: '800' },
+  muted: { color: c.muted, fontSize: 12, marginTop: 3 },
+  detail: { color: c.muted, fontSize: 13, lineHeight: 19 },
   stats: { flexDirection: 'row', gap: 10, marginTop: 6 },
-  stat: { flex: 1, backgroundColor: '#F0F8F5', borderRadius: 10, padding: 11 },
-  statNumber: { color: '#087D6C', fontSize: 22, fontWeight: '800' },
-  statLabel: { color: '#657875', fontSize: 11 },
-  error: { color: '#B42318', backgroundColor: '#FEE4E2', padding: 12, borderRadius: 10 },
+  stat: { flex: 1, backgroundColor: c.accentSoft, borderRadius: 10, padding: 11 },
+  statNumber: { color: c.accent, fontSize: 22, fontWeight: '800' },
+  statLabel: { color: c.muted, fontSize: 11 },
+  error: { color: c.danger, backgroundColor: c.dangerSoft, padding: 12, borderRadius: 10 },
 });

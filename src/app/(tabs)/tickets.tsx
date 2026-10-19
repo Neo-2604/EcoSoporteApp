@@ -1,19 +1,26 @@
-import { router, useFocusEffect } from 'expo-router';
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { api } from '../../api/client';
 import { Chips, Empty, ErrorBox, Field, Loading, Screen } from '../../components/kit';
 import { Icon } from '../../components/icon';
 import { Ticket, TicketCard } from '../../components/ticket-card';
+import { slaLeft } from '../../lib/format';
 import { useTheme } from '../../theme';
 
-const FILTERS = ['Abierto', 'En proceso', 'En espera', 'Finalizados'] as const;
+const FILTERS = ['Abierto', 'En proceso', 'En espera', 'Vencidos', 'Finalizados'] as const;
 
 export default function Tickets() {
   const { c } = useTheme();
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [q, setQ] = useState('');
   const [status, setStatus] = useState<(typeof FILTERS)[number] | null>(null);
+  const params = useLocalSearchParams<{ status?: string; ts?: string }>();
+  // al tocar un contador del inicio se llega aquí con el filtro ya elegido
+  useEffect(() => {
+    const f = FILTERS.find(x => x === params.status);
+    if (f) setStatus(f);
+  }, [params.status, params.ts]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const seq = useRef(0);
@@ -22,9 +29,12 @@ export default function Tickets() {
     const my = ++seq.current;
     setLoading(true); setError('');
     try {
-      const qs = new URLSearchParams(); if (q.trim()) qs.set('q', q.trim()); if (status) qs.set('status', status === 'Finalizados' ? 'finalizados' : status);
+      const qs = new URLSearchParams(); if (q.trim()) qs.set('q', q.trim()); if (status && status !== 'Vencidos') qs.set('status', status === 'Finalizados' ? 'finalizados' : status);
       const data = await api<Ticket[]>(`/tickets${qs.toString() ? '?' + qs : ''}`);
-      if (my === seq.current) setTickets(data);
+      const shown = status === 'Vencidos'
+        ? data.filter(t => t.status !== 'Resuelto' && t.status !== 'Cerrado' && slaLeft(t.solution_due, t.status)?.late)
+        : data;
+      if (my === seq.current) setTickets(shown);
     } catch (e: unknown) {
       if (my === seq.current) setError(e instanceof Error ? e.message : 'No se pudieron cargar los tickets.');
     } finally { if (my === seq.current) setLoading(false); }

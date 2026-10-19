@@ -5,7 +5,7 @@ import { Card, Empty, Muted, Screen } from '../components/kit';
 import { Notif, openNotification, useNotifications } from '../notifications';
 import { useTheme } from '../theme';
 
-const ICON: Record<string, string> = { ticket: '🎫', asignacion: '📌', conexion: '🟢' };
+const ICON: Record<string, string> = { ticket: '🎫', asignacion: '📌', conexion: '🟢', estado: '🔄', nota: '💬' };
 
 function ago(t: string) {
   const d = (Date.now() - new Date(t.replace(' ', 'T') + 'Z').getTime()) / 1000;

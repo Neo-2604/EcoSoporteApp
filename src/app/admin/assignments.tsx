@@ -1,5 +1,5 @@
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, useMemo } from 'react';
 import {
   ActivityIndicator, Alert, Platform, Pressable, ScrollView,
   StyleSheet, Text, View,
@@ -7,6 +7,7 @@ import {
 import { Stack } from 'expo-router';
 import { AdminFrame } from '@/components/kit';
 import { api } from '@/api/client';
+import { Palette, useTheme } from '@/theme';
 
 type Ticket = {
   id: number;
@@ -35,6 +36,8 @@ function notify(message: string) {
 }
 
 export default function AdminAssignmentsScreen() {
+  const { c } = useTheme();
+  const styles = useMemo(() => makeStyles(c), [c]);
   const [data, setData] = useState<AssignmentData>({
     tickets: [], technicians: [], areas: [],
   });
@@ -120,7 +123,7 @@ export default function AdminAssignmentsScreen() {
         <Text style={styles.heading}>Selecciona un ticket</Text>
         <Text style={styles.muted}>Al tocar un ticket se abre justo debajo la asignación de área y técnico.</Text>
 
-        {loading && <ActivityIndicator size="large" color="#078A76" />}
+        {loading && <ActivityIndicator size="large" color={c.accent} />}
         {!!error && <Text style={styles.error}>{error}</Text>}
 
         {!loading && data.tickets.length === 0 && !error && (
@@ -202,34 +205,34 @@ export default function AdminAssignmentsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  page: { flexGrow: 1, padding: 18, paddingTop: 14, paddingBottom: 45, gap: 14, backgroundColor: '#F4F8F7' },
-  eyebrow: { color: '#078A76', fontSize: 11, fontWeight: '800', letterSpacing: 1 },
-  title: { color: '#14332F', fontSize: 27, fontWeight: '800' },
-  subtitle: { color: '#657875', fontSize: 14, lineHeight: 21 },
-  card: { backgroundColor: '#FFFFFF', borderRadius: 16, padding: 15, gap: 12, borderWidth: 1, borderColor: '#E1ECE9' },
-  heading: { color: '#183C36', fontSize: 17, fontWeight: '800' },
-  ticket: { borderWidth: 1, borderColor: '#E1ECE9', padding: 12, borderRadius: 12, gap: 5 },
-  panel: { borderTopWidth: 1, borderColor: '#CFE6E0', marginTop: 10, paddingTop: 12, gap: 10 },
-  ticketSelected: { borderColor: '#078A76', backgroundColor: '#F0FBF7' },
+const makeStyles = (c: Palette) => StyleSheet.create({
+  page: { flexGrow: 1, padding: 18, paddingTop: 14, paddingBottom: 45, gap: 14, backgroundColor: c.bg },
+  eyebrow: { color: c.accent, fontSize: 11, fontWeight: '800', letterSpacing: 1 },
+  title: { color: c.ink, fontSize: 27, fontWeight: '800' },
+  subtitle: { color: c.muted, fontSize: 14, lineHeight: 21 },
+  card: { backgroundColor: c.card, borderRadius: 16, padding: 15, gap: 12, borderWidth: 1, borderColor: c.line },
+  heading: { color: c.ink, fontSize: 17, fontWeight: '800' },
+  ticket: { borderWidth: 1, borderColor: c.line, padding: 12, borderRadius: 12, gap: 5 },
+  panel: { borderTopWidth: 1, borderColor: c.line, marginTop: 10, paddingTop: 12, gap: 10 },
+  ticketSelected: { borderColor: c.accent, backgroundColor: c.accentSoft },
   ticketTop: { flexDirection: 'row', justifyContent: 'space-between', gap: 8 },
-  ticketId: { color: '#078A76', fontWeight: '800', fontSize: 12 },
-  priority: { color: '#8A5A12', fontWeight: '700', fontSize: 12 },
-  ticketTitle: { color: '#183C36', fontWeight: '800', fontSize: 15 },
-  muted: { color: '#71827E', fontSize: 12, lineHeight: 18 },
-  selectedText: { color: '#087D6C', fontSize: 12, fontWeight: '800' },
+  ticketId: { color: c.accent, fontWeight: '800', fontSize: 12 },
+  priority: { color: c.warn, fontWeight: '700', fontSize: 12 },
+  ticketTitle: { color: c.ink, fontWeight: '800', fontSize: 15 },
+  muted: { color: c.muted, fontSize: 12, lineHeight: 18 },
+  selectedText: { color: c.accent, fontSize: 12, fontWeight: '800' },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 7 },
-  chip: { borderWidth: 1, borderColor: '#D7E4E0', borderRadius: 20, paddingHorizontal: 11, paddingVertical: 9 },
-  chipSelected: { backgroundColor: '#DDF7F0', borderColor: '#078A76' },
-  chipText: { color: '#47615B', fontSize: 12, fontWeight: '600' },
-  chipTextSelected: { color: '#087D6C' },
-  technician: { borderWidth: 1, borderColor: '#E1ECE9', padding: 12, borderRadius: 12, gap: 4 },
-  technicianSelected: { borderColor: '#078A76', backgroundColor: '#F0FBF7' },
-  technicianName: { color: '#183C36', fontWeight: '800', fontSize: 14 },
-  button: { backgroundColor: '#078A76', padding: 14, borderRadius: 10, alignItems: 'center' },
-  buttonText: { color: '#FFFFFF', fontWeight: '800' },
+  chip: { borderWidth: 1, borderColor: c.line, borderRadius: 20, paddingHorizontal: 11, paddingVertical: 9 },
+  chipSelected: { backgroundColor: c.accentSoft, borderColor: c.accent },
+  chipText: { color: c.muted, fontSize: 12, fontWeight: '600' },
+  chipTextSelected: { color: c.accent },
+  technician: { borderWidth: 1, borderColor: c.line, padding: 12, borderRadius: 12, gap: 4 },
+  technicianSelected: { borderColor: c.accent, backgroundColor: c.accentSoft },
+  technicianName: { color: c.ink, fontWeight: '800', fontSize: 14 },
+  button: { backgroundColor: c.accent, padding: 14, borderRadius: 10, alignItems: 'center' },
+  buttonText: { color: c.accentInk, fontWeight: '800' },
   disabled: { opacity: 0.5 },
-  refresh: { backgroundColor: '#E6F2EF', padding: 12, borderRadius: 10, alignItems: 'center' },
-  refreshText: { color: '#176B5B', fontWeight: '700' },
-  error: { color: '#B42318', backgroundColor: '#FEE4E2', padding: 12, borderRadius: 10 },
+  refresh: { backgroundColor: c.accentSoft, padding: 12, borderRadius: 10, alignItems: 'center' },
+  refreshText: { color: c.accent, fontWeight: '700' },
+  error: { color: c.danger, backgroundColor: c.dangerSoft, padding: 12, borderRadius: 10 },
 });

@@ -57,13 +57,11 @@ export default function Home() {
     <Screen tabs refreshing={loading} onRefresh={load}
       right={(
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-          {isStaff ? (
             <Pressable onPress={() => router.push('/notifications' as never)} accessibilityLabel="Notificaciones" hitSlop={6}
               style={{ width: 44, height: 44, borderRadius: 14, backgroundColor: c.card, borderWidth: 1, borderColor: c.line, alignItems: 'center', justifyContent: 'center' }}>
               <Icon name="bell" size={20} color={c.ink} />
               {unread ? <View style={{ position: 'absolute', top: -5, right: -5, minWidth: 19, height: 19, borderRadius: 10, backgroundColor: c.danger, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4 }}><Text style={{ color: '#fff', fontSize: 11, fontWeight: '800' }}>{unread > 99 ? '99+' : unread}</Text></View> : null}
             </Pressable>
-          ) : null}
           <Pressable onPress={() => router.push('/profile')} accessibilityLabel="Mi perfil"><Avatar name={me?.name ?? '?'} size={44} /></Pressable>
         </View>
       )}
@@ -86,11 +84,13 @@ export default function Home() {
       ) : !loading && !error ? <Card tone="accent"><Text style={{ color: c.ink, fontWeight: '800' }}>Sin pendientes 🎉</Text><Muted>No tienes tickets en curso.</Muted></Card> : null}
 
       <View style={{ flexDirection: 'row', gap: 8, marginBottom: 12 }}>
-        {[['Abiertos', counts['Abierto']], ['En proceso', counts['En proceso']], ['En espera', counts['En espera']], ['Vencidos', late]].map(([k, v]) => (
-          <View key={String(k)} style={{ flex: 1, backgroundColor: c.card, borderColor: k === 'Vencidos' && Number(v) > 0 ? c.danger + '88' : c.line, borderWidth: 1, borderRadius: 14, paddingVertical: 10, paddingHorizontal: 8, alignItems: 'center' }}>
+        {([['Abiertos', counts['Abierto'], 'Abierto'], ['En proceso', counts['En proceso'], 'En proceso'], ['En espera', counts['En espera'], 'En espera'], ['Vencidos', late, 'Vencidos']] as [string, number | undefined, string][]).map(([k, v, f]) => (
+          <Pressable key={k} onPress={() => router.navigate({ pathname: '/tickets', params: { status: f, ts: String(Date.now()) } } as never)}
+            accessibilityRole="button" accessibilityLabel={`${k}: ${v ?? 0}. Ver tickets`}
+            style={({ pressed }) => ({ flex: 1, backgroundColor: c.card, borderColor: k === 'Vencidos' && Number(v) > 0 ? c.danger + '88' : c.line, borderWidth: 1, borderRadius: 14, paddingVertical: 10, paddingHorizontal: 8, alignItems: 'center', opacity: pressed ? 0.8 : 1 })}>
             <Text style={{ color: k === 'Vencidos' && Number(v) > 0 ? c.danger : c.ink, fontSize: 22, fontWeight: '800' }}>{v ?? 0}</Text>
             <Text style={{ color: c.muted, fontSize: 10.5, fontWeight: '700' }}>{k}</Text>
-          </View>
+          </Pressable>
         ))}
       </View>
 
