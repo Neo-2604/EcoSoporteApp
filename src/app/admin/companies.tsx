@@ -5,6 +5,7 @@ import {
   StyleSheet, Text, TextInput, View,
 } from 'react-native';
 import { Stack } from 'expo-router';
+import { AdminFrame } from '@/components/kit';
 import { api } from '@/api/client';
 
 type Company = {
@@ -86,6 +87,7 @@ export default function AdminCompaniesScreen() {
   }
 
   return (
+    <AdminFrame>
     <ScrollView contentContainerStyle={styles.page}>
       <Stack.Screen options={{ title: 'Empresas registradas' }} />
       <Text style={styles.eyebrow}>ECOSOPORTE DIGITAL · DIRECTORIO</Text>
@@ -149,11 +151,12 @@ export default function AdminCompaniesScreen() {
         </View>
       ))}
     </ScrollView>
+    </AdminFrame>
   );
 }
 
 const styles = StyleSheet.create({
-  page: { flexGrow: 1, padding: 18, paddingBottom: 45, gap: 14, backgroundColor: '#F4F8F7' },
+  page: { flexGrow: 1, padding: 18, paddingTop: 14, paddingBottom: 45, gap: 14, backgroundColor: '#F4F8F7' },
   eyebrow: { color: '#078A76', fontSize: 11, fontWeight: '800', letterSpacing: 1 },
   title: { color: '#14332F', fontSize: 28, fontWeight: '800' },
   subtitle: { color: '#657875', fontSize: 14, lineHeight: 21 },

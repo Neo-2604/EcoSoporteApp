@@ -1,6 +1,7 @@
 
 import { api } from '@/api/client';
 import { Stack } from 'expo-router';
+import { AdminFrame } from '@/components/kit';
 import { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator, Alert, Platform, Pressable, ScrollView,
@@ -267,6 +268,7 @@ const loadData = useCallback(async () => {
   );
 
   return (
+    <AdminFrame>
     <ScrollView contentContainerStyle={styles.page}>
       <Stack.Screen options={{ title: 'Administrar usuarios' }} />
       <Text style={styles.eyebrow}>ECOSOPORTE DIGITAL · ADMINISTRACIÓN</Text>
@@ -383,11 +385,12 @@ const loadData = useCallback(async () => {
         </View>
       ))}
     </ScrollView>
+    </AdminFrame>
   );
 }
 
 const styles = StyleSheet.create({
-  page: { padding: 18, paddingBottom: 48, backgroundColor: '#F4F8F7', flexGrow: 1, gap: 14 },
+  page: { padding: 18, paddingTop: 14, paddingBottom: 48, backgroundColor: '#F4F8F7', flexGrow: 1, gap: 14 },
   eyebrow: { color: '#078A76', fontSize: 11, fontWeight: '800', letterSpacing: 1 },
   title: { color: '#14332F', fontSize: 27, fontWeight: '800' },
   subtitle: { color: '#657875', fontSize: 14, lineHeight: 21 },
