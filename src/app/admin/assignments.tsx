@@ -5,6 +5,7 @@ import {
   StyleSheet, Text, View,
 } from 'react-native';
 import { Stack } from 'expo-router';
+import { AdminFrame } from '@/components/kit';
 import { api } from '@/api/client';
 
 type Ticket = {
@@ -105,6 +106,7 @@ export default function AdminAssignmentsScreen() {
   }
 
   return (
+    <AdminFrame>
     <ScrollView contentContainerStyle={styles.page}>
       <Stack.Screen options={{ title: 'Asignación de tickets' }} />
 
@@ -115,7 +117,8 @@ export default function AdminAssignmentsScreen() {
       </Text>
 
       <View style={styles.card}>
-        <Text style={styles.heading}>1. Selecciona un ticket</Text>
+        <Text style={styles.heading}>Selecciona un ticket</Text>
+        <Text style={styles.muted}>Al tocar un ticket se abre justo debajo la asignación de área y técnico.</Text>
 
         {loading && <ActivityIndicator size="large" color="#078A76" />}
         {!!error && <Text style={styles.error}>{error}</Text>}
@@ -124,116 +127,90 @@ export default function AdminAssignmentsScreen() {
           <Text style={styles.muted}>No hay tickets disponibles.</Text>
         )}
 
-        {data.tickets.map(ticket => (
-          <Pressable
-            key={ticket.id}
-            onPress={() => chooseTicket(ticket)}
-            style={[
-              styles.ticket,
-              selectedTicket === ticket.id && styles.ticketSelected,
-            ]}
-          >
-            <View style={styles.ticketTop}>
-              <Text style={styles.ticketId}>{ticket.code ?? `#${ticket.id}`}</Text>
-              <Text style={styles.priority}>{ticket.priority}</Text>
+        {data.tickets.map(ticket => {
+          const open = selectedTicket === ticket.id;
+          return (
+            <View key={ticket.id} style={[styles.ticket, open && styles.ticketSelected]}>
+              <Pressable onPress={() => (open ? setSelectedTicket(null) : chooseTicket(ticket))} style={{ gap: 5 }}>
+                <View style={styles.ticketTop}>
+                  <Text style={styles.ticketId}>{ticket.code ?? `#${ticket.id}`}</Text>
+                  <Text style={styles.priority}>{ticket.priority}</Text>
+                </View>
+                <Text style={styles.ticketTitle}>{ticket.title}</Text>
+                <Text style={styles.muted}>Empresa: {ticket.company || 'No especificada'}</Text>
+                <Text style={styles.muted}>Solicitante: {ticket.creator}</Text>
+                <Text style={styles.muted}>Estado: {ticket.status}</Text>
+                <Text style={styles.muted}>Área: {ticket.area} · Técnico: {ticket.technician || 'Sin asignar'}</Text>
+                <Text style={styles.selectedText}>{open ? 'Ocultar asignación ▲' : 'Asignar técnico ▼'}</Text>
+              </Pressable>
+
+              {open && (
+                <View style={styles.panel}>
+                  <Text style={styles.heading}>Área</Text>
+                  <View style={styles.chips}>
+                    {data.areas.map(area => (
+                      <Pressable
+                        key={area}
+                        onPress={() => { setSelectedArea(area); setSelectedTechnician(null); }}
+                        style={[styles.chip, selectedArea === area && styles.chipSelected]}
+                      >
+                        <Text style={[styles.chipText, selectedArea === area && styles.chipTextSelected]}>{area}</Text>
+                      </Pressable>
+                    ))}
+                  </View>
+
+                  <Text style={styles.heading}>Técnico</Text>
+                  <Pressable
+                    onPress={() => setSelectedTechnician(null)}
+                    style={[styles.technician, selectedTechnician === null && styles.technicianSelected]}
+                  >
+                    <Text style={styles.technicianName}>Sin asignar</Text>
+                  </Pressable>
+                  {availableTechnicians.map(technician => (
+                    <Pressable
+                      key={technician.id}
+                      onPress={() => setSelectedTechnician(technician.id)}
+                      style={[styles.technician, selectedTechnician === technician.id && styles.technicianSelected]}
+                    >
+                      <Text style={styles.technicianName}>{technician.name}</Text>
+                      <Text style={styles.muted}>Área: {technician.area}</Text>
+                    </Pressable>
+                  ))}
+                  {availableTechnicians.length === 0 && (
+                    <Text style={styles.muted}>No hay técnicos activos en esta área. Puedes dejar el ticket sin asignar.</Text>
+                  )}
+
+                  <Pressable
+                    disabled={saving || loading}
+                    onPress={() => void saveAssignment()}
+                    style={[styles.button, (saving || loading) && styles.disabled]}
+                  >
+                    <Text style={styles.buttonText}>{saving ? 'Guardando…' : 'Guardar asignación'}</Text>
+                  </Pressable>
+                </View>
+              )}
             </View>
-            <Text style={styles.ticketTitle}>{ticket.title}</Text>
-            <Text style={styles.muted}>
-              Empresa: {ticket.company || 'No especificada'}
-            </Text>
-            <Text style={styles.muted}>Solicitante: {ticket.creator}</Text>
-            <Text style={styles.muted}>Estado: {ticket.status}</Text>
-            <Text style={styles.muted}>
-              Área: {ticket.area} · Técnico: {ticket.technician || 'Sin asignar'}
-            </Text>
-            {selectedTicket === ticket.id && (
-              <Text style={styles.selectedText}>Ticket seleccionado</Text>
-            )}
-          </Pressable>
-        ))}
-      </View>
-
-      <View style={styles.card}>
-        <Text style={styles.heading}>2. Selecciona el área</Text>
-        <View style={styles.chips}>
-          {data.areas.map(area => (
-            <Pressable
-              key={area}
-              onPress={() => {
-                setSelectedArea(area);
-                setSelectedTechnician(null);
-              }}
-              style={[styles.chip, selectedArea === area && styles.chipSelected]}
-            >
-              <Text style={[styles.chipText, selectedArea === area && styles.chipTextSelected]}>
-                {area}
-              </Text>
-            </Pressable>
-          ))}
-        </View>
-
-        <Text style={styles.heading}>3. Asigna el técnico</Text>
-        <Text style={styles.muted}>
-          Solo aparecen técnicos activos del área seleccionada.
-        </Text>
-
-        <Pressable
-          onPress={() => setSelectedTechnician(null)}
-          style={[styles.technician, selectedTechnician === null && styles.technicianSelected]}
-        >
-          <Text style={styles.technicianName}>Sin asignar</Text>
-          <Text style={styles.muted}>Dejar el ticket pendiente de asignación</Text>
-        </Pressable>
-
-        {availableTechnicians.map(technician => (
-          <Pressable
-            key={technician.id}
-            onPress={() => setSelectedTechnician(technician.id)}
-            style={[
-              styles.technician,
-              selectedTechnician === technician.id && styles.technicianSelected,
-            ]}
-          >
-            <Text style={styles.technicianName}>{technician.name}</Text>
-            <Text style={styles.muted}>Área: {technician.area}</Text>
-            {selectedTechnician === technician.id && (
-              <Text style={styles.selectedText}>Técnico seleccionado</Text>
-            )}
-          </Pressable>
-        ))}
-
-        {availableTechnicians.length === 0 && (
-          <Text style={styles.muted}>
-            No hay técnicos activos en esta área. Puedes dejar el ticket sin asignar.
-          </Text>
-        )}
-
-        <Pressable
-          disabled={saving || loading || !selectedTicket}
-          onPress={() => void saveAssignment()}
-          style={[styles.button, (saving || loading || !selectedTicket) && styles.disabled]}
-        >
-          <Text style={styles.buttonText}>
-            {saving ? 'Guardando…' : 'Guardar asignación'}
-          </Text>
-        </Pressable>
+          );
+        })}
 
         <Pressable style={styles.refresh} onPress={() => void loadData()}>
           <Text style={styles.refreshText}>Actualizar tickets y técnicos</Text>
         </Pressable>
       </View>
     </ScrollView>
+    </AdminFrame>
   );
 }
 
 const styles = StyleSheet.create({
-  page: { flexGrow: 1, padding: 18, paddingBottom: 45, gap: 14, backgroundColor: '#F4F8F7' },
+  page: { flexGrow: 1, padding: 18, paddingTop: 14, paddingBottom: 45, gap: 14, backgroundColor: '#F4F8F7' },
   eyebrow: { color: '#078A76', fontSize: 11, fontWeight: '800', letterSpacing: 1 },
   title: { color: '#14332F', fontSize: 27, fontWeight: '800' },
   subtitle: { color: '#657875', fontSize: 14, lineHeight: 21 },
   card: { backgroundColor: '#FFFFFF', borderRadius: 16, padding: 15, gap: 12, borderWidth: 1, borderColor: '#E1ECE9' },
   heading: { color: '#183C36', fontSize: 17, fontWeight: '800' },
   ticket: { borderWidth: 1, borderColor: '#E1ECE9', padding: 12, borderRadius: 12, gap: 5 },
+  panel: { borderTopWidth: 1, borderColor: '#CFE6E0', marginTop: 10, paddingTop: 12, gap: 10 },
   ticketSelected: { borderColor: '#078A76', backgroundColor: '#F0FBF7' },
   ticketTop: { flexDirection: 'row', justifyContent: 'space-between', gap: 8 },
   ticketId: { color: '#078A76', fontWeight: '800', fontSize: 12 },

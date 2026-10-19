@@ -119,6 +119,26 @@ export function Screen({
   );
 }
 
+/** Marco para las pantallas de administración: deja el contenido debajo de la barra de notificaciones y añade el botón de volver. */
+export function AdminFrame({ children }: { children: ReactNode }) {
+  const { c, dark } = useTheme();
+  const insets = useSafeAreaInsets();
+  return (
+    <>
+      <StatusBar style={dark ? 'light' : 'dark'} />
+      <View style={{ flex: 1, backgroundColor: '#F4F8F7', paddingTop: insets.top }}>
+        <View style={{ paddingHorizontal: 18, paddingTop: 10 }}>
+          <Pressable onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))} accessibilityRole="button" accessibilityLabel="Volver" hitSlop={8}
+            style={{ width: 44, height: 44, borderRadius: 14, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E1ECE9', alignItems: 'center', justifyContent: 'center' }}>
+            <Icon name="back" size={20} color="#14332F" stroke={2.2} />
+          </Pressable>
+        </View>
+        {children}
+      </View>
+    </>
+  );
+}
+
 export function Card({ children, style, onPress, tone }: { children: ReactNode; style?: StyleProp<ViewStyle>; onPress?: () => void; tone?: 'danger' | 'warn' | 'accent' }) {
   const { c } = useTheme();
   const bg = tone === 'danger' ? c.dangerSoft : tone === 'warn' ? c.warnSoft : tone === 'accent' ? c.accentSoft : c.card;
