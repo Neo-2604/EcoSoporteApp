@@ -2,6 +2,7 @@ import { router, usePathname, useSegments } from 'expo-router';
 import { createContext, ReactNode, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { AppState } from 'react-native';
 import { api, AuthError, getToken, setToken } from './api/client';
+import { unregisterPush } from './push';
 
 export type Me = {
   id: number; name: string; email?: string; role: string; area?: string | null;
@@ -69,7 +70,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [me, pathname, ping]);
 
   const signIn = useCallback(async (token: string) => { await setToken(token); await refresh(); }, [refresh]);
-  const signOut = useCallback(async () => { await setToken(null); setMe(null); router.replace('/login'); }, []);
+  const signOut = useCallback(async () => { await unregisterPush(); await setToken(null); setMe(null); router.replace('/login'); }, []);
 
   const role = me?.role ?? '';
   const value: Ctx = {

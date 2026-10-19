@@ -12,3 +12,6 @@ npm-debug.log*
 *.p12
 *.mobileprovision
 *.orig.*
+
+# Firebase (se entrega a EAS como variable de archivo)
+google-services.json
