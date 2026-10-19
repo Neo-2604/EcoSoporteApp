@@ -1,9 +1,10 @@
-import { router } from 'expo-router';
 import { createContext, ReactNode, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { AppState, Pressable, Text, Vibration, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { api } from './api/client';
+import { openNotification } from './open-notification';
 import { useAuth } from './auth';
+import { listenPushTaps, registerPush } from './push';
 import { useTheme } from './theme';
 
 export type Notif = { id: number; kind: string; title: string; body?: string | null; actor_name?: string | null; ticket_id?: number | null; created_at: string };
@@ -12,10 +13,7 @@ type Ctx = { items: Notif[]; unread: number; markRead: () => Promise<void>; refr
 const NotifCtx = createContext<Ctx>({ items: [], unread: 0, markRead: async () => {}, refresh: async () => {}, banner: null, dismiss: () => {} });
 export const useNotifications = () => useContext(NotifCtx);
 
-export function openNotification(n: Notif) {
-  if (n.ticket_id) router.push(`/ticket/${n.ticket_id}` as never);
-  else if (n.kind === 'conexion') router.push('/live' as never);
-}
+export { openNotification };
 
 // Consulta los avisos del servidor cada 20 s mientras la app está abierta: conexiones, tickets nuevos y asignaciones.
 export function NotifProvider({ children }: { children: ReactNode }) {
@@ -42,6 +40,13 @@ export function NotifProvider({ children }: { children: ReactNode }) {
       maxId.current = Math.max(maxId.current, ...d.items.map(n => n.id), 0);
       setItems(d.items); setSeen(d.seen ?? 0);
     } catch { /* sin red: se reintenta en el siguiente ciclo */ }
+  }, [me, isStaff]);
+
+  // Notificaciones push (con la app cerrada): registra este teléfono y abre el ticket al tocar el aviso
+  useEffect(() => {
+    if (!me || !isStaff) return;
+    void registerPush();
+    return listenPushTaps();
   }, [me, isStaff]);
 
   useEffect(() => {

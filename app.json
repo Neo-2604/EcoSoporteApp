@@ -36,7 +36,14 @@
           "backgroundColor": "#063a43"
         }
       ],
-      "expo-secure-store"
+      "expo-secure-store",
+      [
+        "expo-notifications",
+        {
+          "color": "#19c3a6",
+          "defaultChannel": "avisos"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
