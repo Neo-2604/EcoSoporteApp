@@ -1,8 +1,9 @@
 
 import { api } from '@/api/client';
+import { Palette, useTheme } from '@/theme';
 import { Stack } from 'expo-router';
 import { AdminFrame } from '@/components/kit';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, useMemo } from 'react';
 import {
   ActivityIndicator, Alert, Platform, Pressable, ScrollView,
   StyleSheet, Text, TextInput, View,
@@ -36,6 +37,8 @@ function notify(message: string) {
 }
 
 export default function AdminUsersScreen() {
+  const { c } = useTheme();
+  const styles = useMemo(() => makeStyles(c), [c]);
   const [users, setUsers] = useState<UserItem[]>([]);
   const [companies, setCompanies] = useState<Company[]>([]);
   const [loading, setLoading] = useState(true);
@@ -277,10 +280,10 @@ const loadData = useCallback(async () => {
 
       <View style={styles.card}>
         <Text style={styles.section}>Crear usuario</Text>
-        <TextInput style={styles.input} placeholder="Nombre completo" value={name} onChangeText={setName} />
-        <TextInput style={styles.input} placeholder="Correo electrónico" value={email} onChangeText={setEmail} autoCapitalize="none" keyboardType="email-address" />
-        <TextInput style={styles.input} placeholder="Contraseña (mínimo 10 caracteres)" value={password} onChangeText={setPassword} secureTextEntry />
-        <TextInput style={styles.input} placeholder="Teléfono (opcional)" value={phone} onChangeText={setPhone} keyboardType="phone-pad" />
+        <TextInput placeholderTextColor={c.muted} style={styles.input} placeholder="Nombre completo" value={name} onChangeText={setName} />
+        <TextInput placeholderTextColor={c.muted} style={styles.input} placeholder="Correo electrónico" value={email} onChangeText={setEmail} autoCapitalize="none" keyboardType="email-address" />
+        <TextInput placeholderTextColor={c.muted} style={styles.input} placeholder="Contraseña (mínimo 10 caracteres)" value={password} onChangeText={setPassword} secureTextEntry />
+        <TextInput placeholderTextColor={c.muted} style={styles.input} placeholder="Teléfono (opcional)" value={phone} onChangeText={setPhone} keyboardType="phone-pad" />
 
         <Text style={styles.label}>Rol</Text>
         <View style={styles.chips}>
@@ -329,7 +332,7 @@ const loadData = useCallback(async () => {
         <Button label="Actualizar" secondary onPress={() => void loadData()} disabled={loading || saving} />
       </View>
 
-      {loading && <ActivityIndicator size="large" color="#0BAA91" />}
+      {loading && <ActivityIndicator size="large" color={c.accent} />}
       {!!error && <Text style={styles.error}>{error}</Text>}
 
       {!loading && users.map(user => (
@@ -349,10 +352,10 @@ const loadData = useCallback(async () => {
           {editing?.id === user.id ? (
             <>
               <Text style={styles.label}>Datos de la cuenta</Text>
-              <TextInput style={styles.input} placeholder="Nombre completo" value={editing.name} onChangeText={v => setEditing({ ...editing, name: v })} />
-              <TextInput style={styles.input} placeholder="Correo electrónico" value={editing.email} onChangeText={v => setEditing({ ...editing, email: v })} autoCapitalize="none" keyboardType="email-address" />
-              <TextInput style={styles.input} placeholder="Teléfono" value={editing.phone ?? ''} onChangeText={v => setEditing({ ...editing, phone: v })} keyboardType="phone-pad" />
-              <TextInput style={styles.input} placeholder="Cargo" value={editing.position ?? ''} onChangeText={v => setEditing({ ...editing, position: v })} />
+              <TextInput placeholderTextColor={c.muted} style={styles.input} placeholder="Nombre completo" value={editing.name} onChangeText={v => setEditing({ ...editing, name: v })} />
+              <TextInput placeholderTextColor={c.muted} style={styles.input} placeholder="Correo electrónico" value={editing.email} onChangeText={v => setEditing({ ...editing, email: v })} autoCapitalize="none" keyboardType="email-address" />
+              <TextInput placeholderTextColor={c.muted} style={styles.input} placeholder="Teléfono" value={editing.phone ?? ''} onChangeText={v => setEditing({ ...editing, phone: v })} keyboardType="phone-pad" />
+              <TextInput placeholderTextColor={c.muted} style={styles.input} placeholder="Cargo" value={editing.position ?? ''} onChangeText={v => setEditing({ ...editing, position: v })} />
               <Text style={styles.label}>Cambiar rol</Text>
               <View style={styles.chips}>
                 {ROLES.map(item => (
@@ -389,37 +392,37 @@ const loadData = useCallback(async () => {
   );
 }
 
-const styles = StyleSheet.create({
-  page: { padding: 18, paddingTop: 14, paddingBottom: 48, backgroundColor: '#F4F8F7', flexGrow: 1, gap: 14 },
-  eyebrow: { color: '#078A76', fontSize: 11, fontWeight: '800', letterSpacing: 1 },
-  title: { color: '#14332F', fontSize: 27, fontWeight: '800' },
-  subtitle: { color: '#657875', fontSize: 14, lineHeight: 21 },
-  card: { backgroundColor: '#FFFFFF', borderRadius: 18, padding: 16, gap: 11, borderWidth: 1, borderColor: '#E1ECE9' },
-  section: { color: '#183C36', fontSize: 19, fontWeight: '800' },
-  input: { borderWidth: 1, borderColor: '#D7E4E0', backgroundColor: '#FBFDFC', borderRadius: 10, padding: 12, color: '#183C36' },
-  label: { color: '#36534D', fontSize: 13, fontWeight: '700', marginTop: 4 },
+const makeStyles = (c: Palette) => StyleSheet.create({
+  page: { padding: 18, paddingTop: 14, paddingBottom: 48, backgroundColor: c.bg, flexGrow: 1, gap: 14 },
+  eyebrow: { color: c.accent, fontSize: 11, fontWeight: '800', letterSpacing: 1 },
+  title: { color: c.ink, fontSize: 27, fontWeight: '800' },
+  subtitle: { color: c.muted, fontSize: 14, lineHeight: 21 },
+  card: { backgroundColor: c.card, borderRadius: 18, padding: 16, gap: 11, borderWidth: 1, borderColor: c.line },
+  section: { color: c.ink, fontSize: 19, fontWeight: '800' },
+  input: { borderWidth: 1, borderColor: c.line, backgroundColor: c.inputBg, borderRadius: 10, padding: 12, color: c.ink },
+  label: { color: c.muted, fontSize: 13, fontWeight: '700', marginTop: 4 },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 7 },
-  chip: { borderWidth: 1, borderColor: '#D7E4E0', borderRadius: 20, paddingHorizontal: 11, paddingVertical: 8, backgroundColor: '#FFFFFF' },
-  chipSelected: { backgroundColor: '#DDF7F0', borderColor: '#0BAA91' },
-  chipText: { color: '#47615B', fontSize: 12, fontWeight: '600' },
-  chipTextSelected: { color: '#087D6C' },
-  button: { backgroundColor: '#078A76', paddingHorizontal: 14, paddingVertical: 11, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
-  secondary: { backgroundColor: '#E6F2EF' },
-  danger: { backgroundColor: '#B42318' },
-  buttonText: { color: '#FFFFFF', fontWeight: '700', fontSize: 13 },
-  secondaryText: { color: '#176B5B' },
+  chip: { borderWidth: 1, borderColor: c.line, borderRadius: 20, paddingHorizontal: 11, paddingVertical: 8, backgroundColor: c.card },
+  chipSelected: { backgroundColor: c.accentSoft, borderColor: c.accent },
+  chipText: { color: c.muted, fontSize: 12, fontWeight: '600' },
+  chipTextSelected: { color: c.accent },
+  button: { backgroundColor: c.accent, paddingHorizontal: 14, paddingVertical: 11, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  secondary: { backgroundColor: c.accentSoft },
+  danger: { backgroundColor: c.danger },
+  buttonText: { color: c.accentInk, fontWeight: '700', fontSize: 13 },
+  secondaryText: { color: c.accent },
   disabled: { opacity: 0.55 },
   rowHeading: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10 },
-  userCard: { backgroundColor: '#FFFFFF', borderRadius: 16, padding: 14, gap: 12, borderWidth: 1, borderColor: '#E1ECE9' },
+  userCard: { backgroundColor: c.card, borderRadius: 16, padding: 14, gap: 12, borderWidth: 1, borderColor: c.line },
   userTop: { flexDirection: 'row', alignItems: 'center', gap: 11 },
-  avatar: { width: 42, height: 42, borderRadius: 21, backgroundColor: '#DDF7F0', alignItems: 'center', justifyContent: 'center' },
-  avatarText: { color: '#087D6C', fontSize: 18, fontWeight: '800' },
-  userName: { color: '#183C36', fontWeight: '800', fontSize: 15 },
-  muted: { color: '#71827E', fontSize: 12, marginTop: 2 },
+  avatar: { width: 42, height: 42, borderRadius: 21, backgroundColor: c.accentSoft, alignItems: 'center', justifyContent: 'center' },
+  avatarText: { color: c.accent, fontSize: 18, fontWeight: '800' },
+  userName: { color: c.ink, fontWeight: '800', fontSize: 15 },
+  muted: { color: c.muted, fontSize: 12, marginTop: 2 },
   status: { borderRadius: 20, overflow: 'hidden', paddingHorizontal: 9, paddingVertical: 5, fontSize: 11, fontWeight: '800' },
-  active: { color: '#087D56', backgroundColor: '#DDF7E9' },
-  inactive: { color: '#A33B3B', backgroundColor: '#FBE4E4' },
-  roleLine: { color: '#526B65', fontSize: 12 },
+  active: { color: c.accent, backgroundColor: c.okSoft },
+  inactive: { color: c.danger, backgroundColor: c.dangerSoft },
+  roleLine: { color: c.muted, fontSize: 12 },
   actions: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, alignItems: 'center' },
-  error: { color: '#B42318', backgroundColor: '#FEE4E2', padding: 12, borderRadius: 10 },
+  error: { color: c.danger, backgroundColor: c.dangerSoft, padding: 12, borderRadius: 10 },
 });

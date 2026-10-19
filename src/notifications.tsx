@@ -17,7 +17,7 @@ export { openNotification };
 
 // Consulta los avisos del servidor cada 20 s mientras la app está abierta: conexiones, tickets nuevos y asignaciones.
 export function NotifProvider({ children }: { children: ReactNode }) {
-  const { me, isStaff } = useAuth();
+  const { me } = useAuth();
   const [items, setItems] = useState<Notif[]>([]);
   const [seen, setSeen] = useState(0);
   const [banner, setBanner] = useState<Notif | null>(null);
@@ -26,7 +26,7 @@ export function NotifProvider({ children }: { children: ReactNode }) {
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const refresh = useCallback(async () => {
-    if (!me || !isStaff) return;
+    if (!me) return;
     try {
       const d = await api<{ items: Notif[]; unread: number; seen: number }>('/notifications?after=0');
       const fresh = d.items.filter(n => n.id > maxId.current);
@@ -40,22 +40,22 @@ export function NotifProvider({ children }: { children: ReactNode }) {
       maxId.current = Math.max(maxId.current, ...d.items.map(n => n.id), 0);
       setItems(d.items); setSeen(d.seen ?? 0);
     } catch { /* sin red: se reintenta en el siguiente ciclo */ }
-  }, [me, isStaff]);
+  }, [me]);
 
   // Notificaciones push (con la app cerrada): registra este teléfono y abre el ticket al tocar el aviso
   useEffect(() => {
-    if (!me || !isStaff) return;
+    if (!me) return;
     void registerPush();
     return listenPushTaps();
-  }, [me, isStaff]);
+  }, [me]);
 
   useEffect(() => {
-    if (!me || !isStaff) { setItems([]); first.current = true; maxId.current = 0; return; }
+    if (!me) { setItems([]); first.current = true; maxId.current = 0; return; }
     void refresh();
     const t = setInterval(() => { if (AppState.currentState === 'active') void refresh(); }, 20000);
     const sub = AppState.addEventListener('change', s => { if (s === 'active') void refresh(); });
     return () => { clearInterval(t); sub.remove(); };
-  }, [me, isStaff, refresh]);
+  }, [me, refresh]);
 
   const markRead = useCallback(async () => {
     if (!items.length) return;

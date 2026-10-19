@@ -126,11 +126,11 @@ export function AdminFrame({ children }: { children: ReactNode }) {
   return (
     <>
       <StatusBar style={dark ? 'light' : 'dark'} />
-      <View style={{ flex: 1, backgroundColor: '#F4F8F7', paddingTop: insets.top }}>
+      <View style={{ flex: 1, backgroundColor: c.bg, paddingTop: insets.top }}>
         <View style={{ paddingHorizontal: 18, paddingTop: 10 }}>
           <Pressable onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))} accessibilityRole="button" accessibilityLabel="Volver" hitSlop={8}
-            style={{ width: 44, height: 44, borderRadius: 14, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E1ECE9', alignItems: 'center', justifyContent: 'center' }}>
-            <Icon name="back" size={20} color="#14332F" stroke={2.2} />
+            style={{ width: 44, height: 44, borderRadius: 14, backgroundColor: c.card, borderWidth: 1, borderColor: c.line, alignItems: 'center', justifyContent: 'center' }}>
+            <Icon name="back" size={20} color={c.ink} stroke={2.2} />
           </Pressable>
         </View>
         {children}
