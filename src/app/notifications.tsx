@@ -1,7 +1,7 @@
 import { useFocusEffect } from 'expo-router';
 import { useCallback } from 'react';
 import { Text, View } from 'react-native';
-import { Card, Empty, Muted, Screen } from '../components/kit';
+import { Btn, Card, confirm, Empty, Muted, Screen } from '../components/kit';
 import { Notif, openNotification, useNotifications } from '../notifications';
 import { useTheme } from '../theme';
 
@@ -18,10 +18,11 @@ function ago(t: string) {
 
 export default function Notifications() {
   const { c } = useTheme();
-  const { items, unread, markRead, refresh } = useNotifications();
+  const { items, unread, markRead, clear, refresh } = useNotifications();
   useFocusEffect(useCallback(() => { void refresh().then(() => markRead()); }, [refresh, markRead]));
   return (
     <Screen back title="Notificaciones" eyebrow={unread ? `${unread} nuevas` : 'Al día'} onRefresh={refresh}>
+      {items.length ? <Btn title="Borrar todas" variant="soft" icon="trash" style={{ marginBottom: 12 }} onPress={() => confirm('¿Borrar todas tus notificaciones?', () => { void clear(); }, 'Borrar')} /> : null}
       {items.length ? items.map((n: Notif) => (
         <Card key={n.id} onPress={() => openNotification(n)} style={{ padding: 13 }}>
           <View style={{ flexDirection: 'row', gap: 10 }}>

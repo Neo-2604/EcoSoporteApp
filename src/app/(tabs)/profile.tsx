@@ -47,7 +47,7 @@ export default function Profile() {
           </View>
         </Row>
         <Muted style={{ marginTop: 10 }}>{me?.email}</Muted>
-        {me && me.role !== 'Usuario' ? <Btn title="Mi ficha de trabajo" variant="soft" icon="id" style={{ marginTop: 12 }} onPress={() => router.push(`/person/${me.id}`)} /> : null}
+        {me && me.role !== 'Usuario' ? <Btn title="Mi perfil" variant="soft" icon="id" style={{ marginTop: 12 }} onPress={() => router.push(`/person/${me.id}`)} /> : null}
       </Card>
 
       <H>Apariencia</H>
@@ -65,7 +65,6 @@ export default function Profile() {
       </View>
 
       <H>Cuenta</H>
-      <Card onPress={() => router.push('/directory')} style={{ padding: 14 }}><Row><Icon name="users" size={20} color={c.accent} /><Text style={{ color: c.ink, fontWeight: '700', flex: 1 }}>{me?.role === 'Usuario' ? 'Mis técnicos' : 'Directorio de contactos'}</Text><Icon name="chevron" size={18} color={c.muted} /></Row></Card>
       <Card onPress={() => setPwOpen(!pwOpen)} style={{ padding: 14, marginBottom: pwOpen ? 0 : 11, borderBottomLeftRadius: pwOpen ? 0 : 18, borderBottomRightRadius: pwOpen ? 0 : 18 }}><Row><Icon name="lock" size={20} color={c.accent} /><Text style={{ color: c.ink, fontWeight: '700', flex: 1 }}>Cambiar contraseña</Text><Icon name="chevron" size={18} color={c.muted} /></Row></Card>
       {pwOpen ? (
         <Card style={{ borderTopLeftRadius: 0, borderTopRightRadius: 0, borderTopWidth: 0 }}>

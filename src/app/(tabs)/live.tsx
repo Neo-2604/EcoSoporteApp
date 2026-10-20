@@ -1,4 +1,4 @@
-import { Redirect, router, useFocusEffect } from 'expo-router';
+import { Redirect, useFocusEffect } from 'expo-router';
 import { useAuth } from '../../auth';
 import { useCallback, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
@@ -16,6 +16,8 @@ type Activity = {
   last_users: { name: string; role: string; last_seen: string; sessions: number }[];
 };
 type Lead = { id: number; status: string; kind: string; name?: string | null; subject?: string | null };
+
+const roleLabel = (r: string) => (r === 'Usuario' ? 'Cliente' : r);
 
 export default function Live() {
   const { isAdmin } = useAuth();
@@ -79,15 +81,23 @@ function LiveInner() {
 
           <H>Activos ahora</H>
           {a.online_users.map((u, i) => (
-            <Card key={i} style={{ padding: 11 }}>
-              <Row>
-                <Avatar name={u.name} size={36} />
-                <View style={{ flex: 1 }}>
-                  <Text style={{ color: c.ink, fontWeight: '800' }}>{u.name}</Text>
-                  <Muted>{u.role} · {u.kind === 'app' ? 'App' : 'Web'}{u.path ? ` · ${u.path}` : ''}</Muted>
+            <Card key={i} style={{ padding: 14 }}>
+              <Row style={{ gap: 12, alignItems: 'flex-start' }}>
+                <View>
+                  <Avatar name={u.name} size={44} />
+                  <View style={{ position: 'absolute', right: -1, bottom: -1, width: 13, height: 13, borderRadius: 7, backgroundColor: c.ok, borderWidth: 2, borderColor: c.card }} />
                 </View>
-                <Pill text={ago(u.last_seen)} tone="ok" />
+                <View style={{ flex: 1, gap: 3 }}>
+                  <Text numberOfLines={2} style={{ color: c.ink, fontWeight: '800', fontSize: 15 }}>{u.name}</Text>
+                  <Muted>{roleLabel(u.role)}</Muted>
+                </View>
+                <Pill text="En línea" tone="ok" />
               </Row>
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 10 }}>
+                <Pill text={u.kind === 'app' ? 'App' : 'Web'} />
+                {u.path ? <Pill text={u.path} /> : null}
+                <Muted style={{ alignSelf: 'center' }}>· activo {ago(u.last_seen)}</Muted>
+              </View>
             </Card>
           ))}
           {a.online_anonymous ? <Muted style={{ marginBottom: 8 }}>+ {a.online_anonymous} visitante(s) sin sesión (web pública)</Muted> : null}
@@ -101,12 +111,18 @@ function LiveInner() {
 
           <H>Últimos usuarios</H>
           {a.last_users.slice(0, 6).map((u, i) => (
-            <Row key={i} style={{ marginBottom: 8, justifyContent: 'space-between' }}>
-              <Text style={{ color: c.ink, flex: 1 }}>{u.name} <Text style={{ color: c.muted }}>· {u.role}</Text></Text>
-              <Muted>{ago(u.last_seen)}</Muted>
-            </Row>
+            <Card key={i} style={{ padding: 14 }}>
+              <Row style={{ gap: 12, alignItems: 'flex-start' }}>
+                <Avatar name={u.name} size={44} />
+                <View style={{ flex: 1, gap: 3 }}>
+                  <Text numberOfLines={2} style={{ color: c.ink, fontWeight: '800', fontSize: 15 }}>{u.name}</Text>
+                  <Muted>{roleLabel(u.role)}</Muted>
+                </View>
+                <Pill text={ago(u.last_seen)} />
+              </Row>
+              <Muted style={{ marginTop: 8 }}>Última conexión {ago(u.last_seen)}{u.sessions ? ` · ${u.sessions} ${u.sessions === 1 ? 'sesión' : 'sesiones'}` : ''}</Muted>
+            </Card>
           ))}
-          <Pressable onPress={() => router.push('/directory')} style={{ marginTop: 8 }}><Text style={{ color: c.accent, fontWeight: '800' }}>Ver directorio del equipo →</Text></Pressable>
         </>
       ) : null}
     </Screen>
