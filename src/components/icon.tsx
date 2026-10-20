@@ -29,6 +29,7 @@ const P: Record<string, string[]> = {
   route: ['M6 19a3 3 0 1 0 0-6 3 3 0 0 0 0 6z', 'M18 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6z', 'M9 16h5a4 4 0 0 0 4-4'],
   shield: ['M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z'],
   bell: ['M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9', 'M13.7 21a2 2 0 0 1-3.4 0'],
+  trash: ['M3 6h18', 'M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2', 'M6 6l1 14a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-14', 'M10 11v6M14 11v6'],
   edit: ['M12 20h9', 'M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z'],
 };
 
@@ -37,7 +38,7 @@ export type IconName = keyof typeof P;
 export function Icon({ name, size = 22, color = '#000', stroke = 2 }: { name: IconName; size?: number; color?: string; stroke?: number }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={stroke} strokeLinecap="round" strokeLinejoin="round">
-      {P[name].map((d, i) => <Path key={i} d={d} />)}
+      {(P[name] ?? P.alert).map((d, i) => <Path key={i} d={d} />)}
     </Svg>
   );
 }
