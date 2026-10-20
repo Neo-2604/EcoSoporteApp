@@ -9,13 +9,13 @@ import { useTheme } from './theme';
 
 export type Notif = { id: number; kind: string; title: string; body?: string | null; actor_name?: string | null; ticket_id?: number | null; created_at: string };
 
-type Ctx = { items: Notif[]; unread: number; markRead: () => Promise<void>; refresh: () => Promise<void>; banner: Notif | null; dismiss: () => void };
-const NotifCtx = createContext<Ctx>({ items: [], unread: 0, markRead: async () => {}, refresh: async () => {}, banner: null, dismiss: () => {} });
+type Ctx = { items: Notif[]; unread: number; markRead: () => Promise<void>; clear: () => Promise<void>; refresh: () => Promise<void>; banner: Notif | null; dismiss: () => void };
+const NotifCtx = createContext<Ctx>({ items: [], unread: 0, markRead: async () => {}, clear: async () => {}, refresh: async () => {}, banner: null, dismiss: () => {} });
 export const useNotifications = () => useContext(NotifCtx);
 
 export { openNotification };
 
-// Consulta los avisos del servidor cada 20 s mientras la app está abierta: conexiones, tickets nuevos y asignaciones.
+// Consulta los avisos del servidor cada 10 s mientras la app está abierta: conexiones, tickets nuevos y asignaciones.
 export function NotifProvider({ children }: { children: ReactNode }) {
   const { me } = useAuth();
   const [items, setItems] = useState<Notif[]>([]);
@@ -52,7 +52,7 @@ export function NotifProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!me) { setItems([]); first.current = true; maxId.current = 0; return; }
     void refresh();
-    const t = setInterval(() => { if (AppState.currentState === 'active') void refresh(); }, 20000);
+    const t = setInterval(() => { if (AppState.currentState === 'active') void refresh(); }, 10000);
     const sub = AppState.addEventListener('change', s => { if (s === 'active') void refresh(); });
     return () => { clearInterval(t); sub.remove(); };
   }, [me, refresh]);
@@ -63,8 +63,12 @@ export function NotifProvider({ children }: { children: ReactNode }) {
     try { await api('/notifications/read', { method: 'POST', body: { upto } }); setSeen(upto); } catch { /* se reintenta al volver a abrir */ }
   }, [items]);
 
+  const clear = useCallback(async () => {
+    try { await api('/notifications/clear', { method: 'POST', body: {} }); setItems([]); setBanner(null); } catch { /* se puede reintentar */ }
+  }, []);
+
   const unread = items.filter(n => n.id > seen).length;
-  return <NotifCtx.Provider value={{ items, unread, markRead, refresh, banner, dismiss: () => setBanner(null) }}>{children}</NotifCtx.Provider>;
+  return <NotifCtx.Provider value={{ items, unread, markRead, clear, refresh, banner, dismiss: () => setBanner(null) }}>{children}</NotifCtx.Provider>;
 }
 
 // Aviso emergente en la parte superior (queda por debajo de la barra de notificaciones del teléfono).

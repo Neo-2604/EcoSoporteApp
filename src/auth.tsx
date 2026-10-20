@@ -36,7 +36,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       setMe(await api<Me>('/me'));
     } catch (e) {
-      if (e instanceof AuthError || (e instanceof Error && /No autenticado|Sesión vencida|Cuenta inactiva/i.test(e.message))) {
+      if (e instanceof AuthError || (e instanceof Error && /No autenticado|Sesión vencida|Cuenta inactiva|solo para el personal/i.test(e.message))) {
         await setToken(null); setMe(null);
       }
       // otro error (sin red): se conserva la sesión y las pantallas muestran "Reintentar"

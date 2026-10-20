@@ -192,6 +192,19 @@ const loadData = useCallback(async () => {
   }
 
   
+  async function reactivateUser(user: UserItem) {
+    setSaving(true);
+    try {
+      await api(`/users/${user.id}/toggle`, { method: 'POST', body: {} });
+      await loadData();
+      notify(`${user.name} fue reactivado. Ya puede ingresar de nuevo.`);
+    } catch (e: any) {
+      notify(e?.message ?? 'No fue posible reactivar la cuenta.');
+    } finally {
+      setSaving(false);
+    }
+  }
+
   async function retireUser(user: UserItem) {
     const message =
       `¿Deseas retirar a ${user.name} del sistema? ` +
@@ -381,7 +394,9 @@ const loadData = useCallback(async () => {
           ) : (
             <View style={styles.actions}>
               <Button label="Editar datos" secondary onPress={() => setEditing(user)} />
-              <Button label="Retirar" secondary onPress={() => void retireUser(user)} disabled={saving} />
+              {user.active
+                ? <Button label="Retirar" secondary onPress={() => void retireUser(user)} disabled={saving} />
+                : <Button label="Reactivar" onPress={() => void reactivateUser(user)} disabled={saving} />}
               <Button label="Eliminar" onPress={() => void purgeUser(user)} disabled={saving} danger />
             </View>
           )}
