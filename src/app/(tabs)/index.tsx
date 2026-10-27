@@ -103,6 +103,20 @@ export default function Home() {
         ))}
       </View>
 
+      <H>Gestión</H>
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 6 }}>
+        {([
+          ['wallet', me?.role === 'Técnico' ? 'Mi desempeño' : 'Desempeño y nómina', '/performance', true],
+          ['tag', 'Catálogo', '/catalog', true],
+          ['quote', 'Cotizaciones', '/quotes', me?.role !== 'Técnico'],
+          ['chart', 'Estadísticas', '/stats', me?.role !== 'Técnico'],
+        ] as [IconName, string, string, boolean][]).filter(a => a[3]).map(([i, l, path]) => (
+          <Pressable key={l} onPress={() => router.push(path as never)} style={{ width: '48.5%', flexDirection: 'row', gap: 8, alignItems: 'center', backgroundColor: c.card, borderColor: c.line, borderWidth: 1, borderRadius: 14, padding: 12 }}>
+            <Icon name={i} size={18} color={c.accent} /><Text style={{ color: c.ink, fontWeight: '800', fontSize: 12.5, flex: 1 }}>{l}</Text>
+          </Pressable>
+        ))}
+      </View>
+
       {isAdmin ? (
         <>
           <H>Administración</H>

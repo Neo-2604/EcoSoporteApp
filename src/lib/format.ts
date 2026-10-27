@@ -41,3 +41,10 @@ export function slaLeft(due?: string | null, status?: string): Sla {
 
 export const STATUSES = ['Abierto', 'En proceso', 'En espera', 'Resuelto', 'Cerrado'] as const;
 export const PRIORITIES = ['Baja', 'Media', 'Alta', 'Crítica'] as const;
+
+/** Pesos colombianos: 2349095 -> $2.349.095 */
+export const cop = (n?: number | null) => (n == null ? '—' : '$' + Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.'));
+/** Proporción 0..1 -> "92,5%" (sin dato -> "sin datos") */
+export const pct = (x?: number | null) => (x == null ? 'sin datos' : `${(x * 100).toFixed(1).replace('.', ',')}%`);
+
+export const quoteTone = (s: string) => (s === 'Aceptada' ? 'ok' : s === 'Rechazada' || s === 'Cerrada' ? 'neutral' : s === 'Nueva' ? 'warn' : 'accent') as 'ok' | 'neutral' | 'warn' | 'accent';
